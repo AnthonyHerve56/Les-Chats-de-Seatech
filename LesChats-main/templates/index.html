@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='img/seatech_logo.png') }}" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
 </head>
 <body>
     <div class="main-container">
@@ -59,6 +60,74 @@
                 <h1>Les Chats De SeaTech</h1>
                 <p class="subtitle">Votre guide félin pour l'école d'ingénieurs de l'Université de Toulon</p>
             </header>
+
+            <!-- Section de sélection de rôle -->
+            {% if not user_profile.get('confirmed') %}
+            <section class="role-selection-container">
+                <div class="role-selection-header">
+                    <h3><i class="fas fa-user-circle"></i> Choisissez votre profil</h3>
+                    <p>Pour mieux vous aider, veuillez sélectionner votre profil :</p>
+                </div>
+                
+                <div class="role-buttons-grid">
+                    <div class="role-button" data-role="Étudiant">
+                        <div class="role-button-header">
+                            <div class="role-icon"><i class="fas fa-graduation-cap"></i></div>
+                            <div class="role-title">Étudiant</div>
+                        </div>
+                        <div class="role-description">
+                            Étudiant actuel de SeaTech cherchant des informations sur les cours, emplois du temps, projets, vie associative...
+                        </div>
+                    </div>
+                    
+                    <div class="role-button" data-role="Candidat">
+                        <div class="role-button-header">
+                            <div class="role-icon"><i class="fas fa-user-plus"></i></div>
+                            <div class="role-title">Candidat</div>
+                        </div>
+                        <div class="role-description">
+                            Candidat intéressé par SeaTech : admissions, concours, formations, spécialités disponibles...
+                        </div>
+                    </div>
+                    
+                    <div class="role-button" data-role="Enseignant">
+                        <div class="role-button-header">
+                            <div class="role-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                            <div class="role-title">Enseignant</div>
+                        </div>
+                        <div class="role-description">
+                            Enseignant cherchant des ressources pédagogiques, contacts administratifs, organisation des cours...
+                        </div>
+                    </div>
+                    
+                    <div class="role-button" data-role="Alumni">
+                        <div class="role-button-header">
+                            <div class="role-icon"><i class="fas fa-user-tie"></i></div>
+                            <div class="role-title">Alumni</div>
+                        </div>
+                        <div class="role-description">
+                            Ancien étudiant de SeaTech intéressé par le réseau alumni, partenariats, événements...
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="confirm-role-section">
+                    <p>Rôle sélectionné : <strong id="selectedRoleName"></strong></p>
+                    <button class="confirm-button" id="confirmRoleBtn">
+                        <i class="fas fa-check"></i> Confirmer mon profil
+                    </button>
+                </div>
+            </section>
+            {% else %}
+            <!-- Affichage du rôle actuel -->
+            <div class="current-role-display">
+                <p><i class="fas fa-user-check"></i> Profil actuel : <span class="role-name">{{ user_profile.role }}</span></p>
+                <button class="reset-button" id="resetRoleBtn">
+                    <i class="fas fa-redo"></i> Changer de profil
+                </button>
+            </div>
+            {% endif %}
+
             <section class="chat-container">
                 <div class="chat-history" id="chatHistory">
                     <article class="message bot-message">
@@ -69,7 +138,13 @@
                             <div class="message-header">
                                 <strong>Franky</strong>
                             </div>
-                            <p>Miaaaou ! Je suis <strong>Franky</strong>, votre guide félin de SeaTech ! 🐱 Mon ami <strong>Freddy</strong> et moi sommes là pour vous aider. Posez-moi n'importe quelle question sur l'école et je vous répondrai avec précision, pendant que Freddy fouille dans les documents officiels pour trouver les informations pertinentes.</p>
+                            <p>Miaaaou ! Je suis <strong>Franky</strong>, votre guide félin de SeaTech ! 🐱 Mon ami <strong>Freddy</strong> et moi sommes là pour vous aider. 
+                            {% if not user_profile.get('confirmed') %}
+                            Commencez par sélectionner votre profil ci-dessus pour que je puisse adapter mes réponses à vos besoins.
+                            {% else %}
+                            Posez-moi n'importe quelle question sur l'école et je vous répondrai en tant qu'assistant spécialisé pour les {{ user_profile.role }}s.
+                            {% endif %}
+                            </p>
                         </div>
                     </article>
                     
@@ -86,7 +161,9 @@
                                     <div class="message-header">
                                         <strong>Franky</strong>
                                         <div class="message-actions">
+                                            {% if not msg.get('is_system_message') %}
                                             <button class="show-sources-btn" aria-label="Afficher les sources"><i class="fas fa-file-alt"></i> Sources</button>
+                                            {% endif %}
                                             {% if msg.processing_time %}
                                             <span class="processing-time">{{ msg.processing_time }}</span>
                                             {% endif %}
@@ -103,7 +180,13 @@
                             </article>
                         {% endfor %}
                     {% else %}
-                        <div class="no-messages">Aucun message pour le moment. Commencez à poser vos questions !</div>
+                        {% if not user_profile.get('confirmed') %}
+                        <div class="role-required-notice">
+                            <i class="fas fa-info-circle"></i> Veuillez sélectionner votre profil ci-dessus pour commencer à poser vos questions.
+                        </div>
+                        {% else %}
+                        <div class="no-messages">Posez votre première question !</div>
+                        {% endif %}
                     {% endif %}
                 </div>
                 
@@ -114,12 +197,15 @@
                     </div>
                 </div>
                 
-                <form class="chat-form" id="chatForm" method="POST" action="/">
+                <form class="chat-form{% if not user_profile.get('confirmed') %} disabled{% endif %}" id="chatForm" method="POST" action="/">
                     <div class="chat-input-container">
                         <img src="{{ url_for('static', filename='img/cat_walking.png') }}" alt="Chat qui marche" class="cat-walking">
-                        <input type="text" name="query" id="queryInput" class="chat-input" placeholder="Posez votre question sur SeaTech..." required autocomplete="off" aria-label="Votre question">
+                        <input type="text" name="query" id="queryInput" class="chat-input" 
+                               placeholder="{% if user_profile.get('confirmed') %}Posez votre question sur SeaTech...{% else %}Sélectionnez d'abord votre profil ci-dessus{% endif %}" 
+                               {% if not user_profile.get('confirmed') %}disabled{% endif %} 
+                               required autocomplete="off" aria-label="Votre question">
                     </div>
-                    <button type="submit" class="send-button">
+                    <button type="submit" class="send-button" {% if not user_profile.get('confirmed') %}disabled{% endif %}>
                         Envoyer
                         <img src="{{ url_for('static', filename='img/cat-icon.png') }}" alt="Chat" class="cat-icon" width="20" height="20">
                     </button>
@@ -151,7 +237,8 @@
                     <img src="{{ url_for('static', filename='img/freddy.png') }}" alt="Freddy" loading="lazy">
                     <div>
                         <p><strong>Miaaaou !</strong> Je suis <strong>Freddy</strong>, l'assistant de recherche de SeaTech.</p>
-                        <p>Je fouille dans les documents pour trouver les informations les plus pertinentes !</p>
+                        <p>Je fouille dans les documents pour trouver les informations les plus pertinentes 
+                        {% if user_profile.get('confirmed') %}pour les {{ user_profile.role }}s{% endif %} !</p>
                     </div>
                 </div>
                 
@@ -161,7 +248,11 @@
                 <div id="freddyLogs" class="freddy-logs">
                     <div class="freddy-log-entry">
                         <span class="log-time">{{ current_datetime.strftime('%H:%M:%S') }}</span>
-                        <span class="log-action">En attente d'une question...</span>
+                        {% if user_profile.get('confirmed') %}
+                        <span class="log-action">Prêt à chercher pour un profil {{ user_profile.role }}</span>
+                        {% else %}
+                        <span class="log-action">En attente de sélection de profil...</span>
+                        {% endif %}
                     </div>
                 </div>
                 
@@ -172,10 +263,18 @@
                     <div class="freddy-source-block">
                         <div class="freddy-source-header">
                             <span class="source-name">Informations SeaTech</span>
-                            <span class="medium-relevance">En attente...</span>
+                            {% if user_profile.get('confirmed') %}
+                            <span class="medium-relevance">Filtrage par profil {{ user_profile.role }}...</span>
+                            {% else %}
+                            <span class="medium-relevance">En attente de profil...</span>
+                            {% endif %}
                         </div>
                         <div class="freddy-source-content">
-                            Posez une question pour que je puisse chercher des informations pertinentes dans ma base de connaissances.
+                            {% if user_profile.get('confirmed') %}
+                            Prêt à chercher des informations spécifiquement adaptées pour les {{ user_profile.role }}s.
+                            {% else %}
+                            Sélectionnez votre profil pour que je puisse filtrer les informations selon vos besoins.
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -199,6 +298,15 @@
             const closeSourcesBtn = document.getElementById('closeSourcesBtn');
             const freddyLogs = document.getElementById('freddyLogs');
             const freddySources = document.getElementById('freddySources');
+            
+            // Éléments de sélection de rôle
+            const roleButtons = document.querySelectorAll('.role-button');
+            const confirmRoleSection = document.querySelector('.confirm-role-section');
+            const confirmRoleBtn = document.getElementById('confirmRoleBtn');
+            const resetRoleBtn = document.getElementById('resetRoleBtn');
+            const selectedRoleName = document.getElementById('selectedRoleName');
+            
+            let selectedRole = null;
 
             const loadingMessages = [
                 "Freddy fouille dans les archives...",
@@ -208,6 +316,66 @@
                 "Freddy chasse les informations pertinentes... 🐾",
                 "Les moustaches de Freddy frémissent... il est sur une piste!"
             ];
+
+            // Gestion de la sélection de rôle
+            roleButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Désélectionner tous les autres boutons
+                    roleButtons.forEach(btn => btn.classList.remove('selected'));
+                    
+                    // Sélectionner ce bouton
+                    this.classList.add('selected');
+                    selectedRole = this.dataset.role;
+                    
+                    // Afficher la section de confirmation
+                    selectedRoleName.textContent = selectedRole;
+                    confirmRoleSection.classList.add('active');
+                });
+            });
+
+            // Confirmation du rôle
+            if (confirmRoleBtn) {
+                confirmRoleBtn.addEventListener('click', function() {
+                    if (selectedRole) {
+                        fetch('/api/ask', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({ role_selection: selectedRole }),
+                            credentials: 'same-origin'
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'role_selected') {
+                                // Recharger la page pour afficher la nouvelle interface
+                                window.location.reload();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erreur lors de la sélection de rôle:', error);
+                        });
+                    }
+                });
+            }
+
+            // Réinitialisation du rôle
+            if (resetRoleBtn) {
+                resetRoleBtn.addEventListener('click', function() {
+                    fetch('/api/reset-role', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        credentials: 'same-origin'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'role_reset') {
+                            window.location.reload();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors de la réinitialisation:', error);
+                    });
+                });
+            }
 
             // Extraction des sources du HTML
             function extractSources(html) {
@@ -271,112 +439,135 @@
             initButtons();
 
             // Gestion de la soumission du formulaire
-            chatForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const query = queryInput.value.trim();
-                if (!query) return;
-                
-                // Création du message utilisateur
-                const userMessageDiv = document.createElement('article');
-                userMessageDiv.className = 'message user-message';
-                userMessageDiv.innerHTML = `
-                    <div class="message-content">${query}</div>
-                    <div class="message-avatar">
-                        <img src="${window.location.origin}/static/img/user.png" alt="User" class="avatar" loading="lazy">
-                    </div>
-                `;
-                chatHistory.appendChild(userMessageDiv);
-                scrollToBottom();
-                
-                // Affichage de l'indicateur de chargement
-                loadingIndicator.style.display = 'block';
-                messageIndex = 0;
-                updateLoadingMessage();
-                loadingInterval = setInterval(updateLoadingMessage, 2000);
-                
-                // Envoi de la requête au serveur
-                fetch('/api/ask', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ query: query }),
-                    credentials: 'same-origin'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    clearInterval(loadingInterval);
-                    loadingIndicator.style.display = 'none';
+            if (chatForm) {
+                chatForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const query = queryInput.value.trim();
+                    if (!query) return;
                     
-                    // Traitement des sources
-                    const sourcesHtml = data.sources || extractSources(data.response);
-                    let cleanResponse = data.response;
-                    
-                    if (sourcesHtml && cleanResponse.includes("sources-container")) {
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = cleanResponse;
-                        const sourcesContainer = tempDiv.querySelector('.sources-container');
-                        if (sourcesContainer) {
-                            sourcesContainer.remove();
-                            cleanResponse = tempDiv.innerHTML;
-                        }
-                    }
-                    
-                    if (sourcesHtml) {
-                        sourcesContent.innerHTML = sourcesHtml;
-                    }
-                    
-                    // Mise à jour des logs Freddy
-                    if (data.freddy_logs) {
-                        updateFreddyContent(data.freddy_logs);
-                    }
-                    
-                    // Création du message bot
-                    const botMessageDiv = document.createElement('article');
-                    botMessageDiv.className = 'message bot-message';
-                    botMessageDiv.innerHTML = `
+                    // Création du message utilisateur
+                    const userMessageDiv = document.createElement('article');
+                    userMessageDiv.className = 'message user-message';
+                    userMessageDiv.innerHTML = `
+                        <div class="message-content">${query}</div>
                         <div class="message-avatar">
-                            <img src="${window.location.origin}/static/img/franky.png" alt="Franky" class="avatar" loading="lazy">
+                            <img src="${window.location.origin}/static/img/user.png" alt="User" class="avatar" loading="lazy">
                         </div>
-                        <div class="message-content">
-                            <div class="message-header">
-                                <strong>Franky</strong>
-                                <div class="message-actions">
-                                    ${sourcesHtml ? '<button class="show-sources-btn" aria-label="Afficher les sources"><i class="fas fa-file-alt"></i> Sources</button>' : ''}
-                                    ${data.processing_time ? '<span class="processing-time">' + data.processing_time + '</span>' : ''}
+                    `;
+                    chatHistory.appendChild(userMessageDiv);
+                    scrollToBottom();
+                    
+                    // Affichage de l'indicateur de chargement
+                    loadingIndicator.style.display = 'block';
+                    messageIndex = 0;
+                    updateLoadingMessage();
+                    loadingInterval = setInterval(updateLoadingMessage, 2000);
+                    
+                    // Envoi de la requête au serveur
+                    fetch('/api/ask', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ query: query }),
+                        credentials: 'same-origin'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        clearInterval(loadingInterval);
+                        loadingIndicator.style.display = 'none';
+                        
+                        // Vérifier si le rôle est requis
+                        if (data.status === 'role_required') {
+                            const errorDiv = document.createElement('article');
+                            errorDiv.className = 'message bot-message';
+                            errorDiv.innerHTML = `
+                                <div class="message-avatar">
+                                    <img src="${window.location.origin}/static/img/franky.png" alt="Franky" class="avatar" loading="lazy">
                                 </div>
+                                <div class="message-content">
+                                    <div class="message-header">
+                                        <strong>Franky</strong>
+                                    </div>
+                                    ${data.response}
+                                </div>
+                            `;
+                            chatHistory.appendChild(errorDiv);
+                            scrollToBottom();
+                            return;
+                        }
+                        
+                        // Traitement des sources
+                        const sourcesHtml = data.sources || extractSources(data.response);
+                        let cleanResponse = data.response;
+                        
+                        if (sourcesHtml && cleanResponse.includes("sources-container")) {
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = cleanResponse;
+                            const sourcesContainer = tempDiv.querySelector('.sources-container');
+                            if (sourcesContainer) {
+                                sourcesContainer.remove();
+                                cleanResponse = tempDiv.innerHTML;
+                            }
+                        }
+                        
+                        if (sourcesHtml) {
+                            sourcesContent.innerHTML = sourcesHtml;
+                        }
+                        
+                        // Mise à jour des logs Freddy
+                        if (data.freddy_logs) {
+                            updateFreddyContent(data.freddy_logs);
+                        }
+                        
+                        // Création du message bot
+                        const botMessageDiv = document.createElement('article');
+                        botMessageDiv.className = 'message bot-message';
+                        botMessageDiv.innerHTML = `
+                            <div class="message-avatar">
+                                <img src="${window.location.origin}/static/img/franky.png" alt="Franky" class="avatar" loading="lazy">
                             </div>
-                            ${cleanResponse}
-                        </div>
-                    `;
-                    
-                    chatHistory.appendChild(botMessageDiv);
-                    queryInput.value = '';
-                    queryInput.focus();
-                    scrollToBottom();
-                    initButtons();
-                })
-                .catch(error => {
-                    console.error('Erreur:', error);
-                    clearInterval(loadingInterval);
-                    loadingIndicator.style.display = 'none';
-                    
-                    // Message d'erreur
-                    const errorDiv = document.createElement('article');
-                    errorDiv.className = 'message bot-message';
-                    errorDiv.innerHTML = `
-                        <div class="message-avatar">
-                            <img src="${window.location.origin}/static/img/franky.png" alt="Franky" class="avatar" loading="lazy">
-                        </div>
-                        <div class="message-content">
-                            <div class="message-header">
-                                <strong>Franky</strong>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <strong>Franky</strong>
+                                    <div class="message-actions">
+                                        ${sourcesHtml ? '<button class="show-sources-btn" aria-label="Afficher les sources"><i class="fas fa-file-alt"></i> Sources</button>' : ''}
+                                        ${data.processing_time ? '<span class="processing-time">' + data.processing_time + '</span>' : ''}
+                                        ${data.confirmed_role ? '<span class="role-indicator">Profil: ' + data.confirmed_role + '</span>' : ''}
+                                    </div>
+                                </div>
+                                ${cleanResponse}
                             </div>
-                            <p>Désolé, une erreur s'est produite pendant la recherche. Veuillez réessayer.</p>
-                        </div>
-                    `;
-                    chatHistory.appendChild(errorDiv);
-                    scrollToBottom();
+                        `;
+                        
+                        chatHistory.appendChild(botMessageDiv);
+                        queryInput.value = '';
+                        queryInput.focus();
+                        scrollToBottom();
+                        initButtons();
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        clearInterval(loadingInterval);
+                        loadingIndicator.style.display = 'none';
+                        
+                        // Message d'erreur
+                        const errorDiv = document.createElement('article');
+                        errorDiv.className = 'message bot-message';
+                        errorDiv.innerHTML = `
+                            <div class="message-avatar">
+                                <img src="${window.location.origin}/static/img/franky.png" alt="Franky" class="avatar" loading="lazy">
+                            </div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <strong>Franky</strong>
+                                </div>
+                                <p>Désolé, une erreur s'est produite pendant la recherche. Veuillez réessayer.</p>
+                            </div>
+                        `;
+                        chatHistory.appendChild(errorDiv);
+                        scrollToBottom();
+                    });
                 });
-            });
+            }
         });
     </script>
 </body>

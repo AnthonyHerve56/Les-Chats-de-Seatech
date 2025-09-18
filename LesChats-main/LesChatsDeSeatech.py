@@ -110,6 +110,36 @@ else:
     embedding_model = None
     logger.warning("Bibliothèques ML non disponibles")
 
+
+def handle_role_selection(session_id, selected_role=None):
+    """Gère la sélection de rôle utilisateur et initialise la conversation."""
+    if session_id not in conversation_history_global:
+        conversation_history_global[session_id] = []
+    
+    # Si un rôle est sélectionné, l'enregistrer dans la session
+    if selected_role and selected_role in profile_mapping:
+        if 'user_profile' not in session:
+            session['user_profile'] = {}
+        session['user_profile']['role'] = selected_role
+        session['user_profile']['confirmed'] = True
+        
+        # Message de bienvenue personnalisé selon le rôle
+        role_config = profile_mapping[selected_role]
+        welcome_message = f"""
+        <p>Parfait ! Je vais adapter mes réponses pour un profil <strong>{selected_role}</strong>.</p>
+        <p>{role_config['description']}</p>
+        <p>Vous pouvez maintenant me poser vos questions sur SeaTech !</p>
+        """
+        
+        conversation_history_global[session_id].append({
+            "role": "assistant",
+            "content": welcome_message,
+            "is_system_message": True
+        })
+        
+        return selected_role
+    
+    return None
 # ===== FONCTIONS UTILITAIRES =====
 def detect_user_role(query, conversation_history=None):
     """
@@ -444,8 +474,10 @@ def setup_search_index(embeddings):
         logger.error(f"Erreur initialisation index: {e}")
         return None, False
 
-def search_similar_chunks(query, index, is_faiss, embeddings, chunks_data, conversation_history=None, top_n=5):
-    """Recherche les chunks les plus similaires à la requête avec filtrage par rôle."""
+def search_similar_chunks_with_confirmed_role(query, index, is_faiss, embeddings, chunks_data, conversation_history=None, confirmed_role=None, top_n=5):
+    """Recherche avec rôle confirmé par l'utilisateur."""
+    
+    # Recherche de base (identique à l'ancienne fonction)
     if not embedding_model or not index:
         results = keyword_search(query, chunks_data, top_n)
     else:
@@ -453,6 +485,7 @@ def search_similar_chunks(query, index, is_faiss, embeddings, chunks_data, conve
             query_expanded = expand_acronyms_in_query(query)
             query_embedding = embedding_model.encode(query_expanded, convert_to_tensor=False)
             query_embedding = np.array(query_embedding, dtype=np.float32).reshape(1, -1)
+            
             if is_faiss:
                 distances, indices = index.search(query_embedding, min(top_n * 2, len(chunks_data)))
                 distances, indices = distances[0], indices[0]
@@ -466,20 +499,33 @@ def search_similar_chunks(query, index, is_faiss, embeddings, chunks_data, conve
                 top_indices = np.argsort(similarities)[-top_n*2:][::-1]
                 results = [(chunks_data[idx][0], chunks_data[idx][1], similarities[idx])
                            for idx in top_indices if similarities[idx] > 0.1]
+            
             results = sorted(results, key=lambda x: x[2], reverse=True)[:top_n*2]
         except Exception as e:
             logger.error(f"Erreur de recherche: {e}")
             results = keyword_search(query, chunks_data, top_n)
     
-    # Détection du rôle et filtrage
-    detected_role, role_confidence = detect_user_role(query, conversation_history)
-    logger.info(f"Rôle détecté: {detected_role} (confiance: {role_confidence:.2f})")
+    # Utiliser le rôle confirmé ou détecter automatiquement
+    if confirmed_role:
+        detected_role = confirmed_role
+        role_confidence = 1.0  # Confiance maximale car confirmé par l'utilisateur
+    else:
+        detected_role, role_confidence = detect_user_role(query, conversation_history)
     
     # Filtrer et réorganiser les résultats selon le rôle
     filtered_results = filter_chunks_by_role(results, detected_role, role_confidence)
     
     return filtered_results[:top_n], detected_role, role_confidence
+# 3. Fonction pour vérifier si l'utilisateur a confirmé son rôle
+def is_role_confirmed(session_id):
+    """Vérifie si l'utilisateur a confirmé son rôle."""
+    user_profile = session.get('user_profile', {})
+    return user_profile.get('confirmed', False)
 
+def get_confirmed_role(session_id):
+    """Récupère le rôle confirmé de l'utilisateur."""
+    user_profile = session.get('user_profile', {})
+    return user_profile.get('role', None)
 def keyword_search(query, chunks_data, top_n=5):
     """Recherche par mots-clés en fallback."""
     query_terms = query.lower().split()
@@ -707,58 +753,87 @@ conversation_history_global = {}
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    """Page d'accueil du chatbot."""
+    """Page d'accueil du chatbot avec gestion de la sélection de rôle."""
     if 'session_id' not in session:
         session['session_id'] = str(uuid.uuid4())
     session_id = session['session_id']
+    
     if session_id not in conversation_history_global:
         conversation_history_global[session_id] = []
+    
+    # Gérer la sélection de rôle si fournie
+    selected_role = request.form.get("role_selection") if request.method == "POST" else None
+    if selected_role:
+        handle_role_selection(session_id, selected_role)
+    
     if request.method == "POST":
         user_query = request.form.get("query", "").strip()
         if user_query:
-            conversation_history_global[session_id].append({"role": "user", "content": user_query})
-            start_time = time.time()
-            
-            # Recherche avec détection de rôle
-            results, detected_role, role_confidence = search_similar_chunks(
-                user_query, search_index, use_faiss, chunk_embeddings, chunks_with_sources, 
-                conversation_history_global[session_id]
-            )
-            
-            # Contexte des chunks trouvés
-            context_chunks = "\n\n".join([text for text, _, _ in results])
-            found_info = any(score > CONFIDENCE_THRESHOLD for _, _, score in results)
-            
-            # Génération de réponse avec le rôle détecté
-            answer = generate_answer(user_query, context_chunks, conversation_history_global[session_id], found_info, detected_role)
-            processing_time = time.time() - start_time
-            
-            # Formatage des sources avec information de rôle
-            sources_html = format_sources(results, detected_role=detected_role)
-            freddy_html = create_freddy_logs(user_query, results, detected_role, role_confidence) + format_sources(results, for_freddy=True, detected_role=detected_role)
-            
-            conversation_history_global[session_id].append({
-                "role": "assistant", 
-                "content": answer,
-                "sources": sources_html,
-                "freddy_logs": freddy_html,
-                "processing_time": f"{processing_time:.2f}s",
-                "detected_role": detected_role,
-                "role_confidence": role_confidence
-            })
+            # Vérifier si le rôle est confirmé
+            if not is_role_confirmed(session_id):
+                # Rediriger vers la sélection de rôle
+                error_message = {
+                    "role": "assistant",
+                    "content": "<p>Veuillez d'abord sélectionner votre profil ci-dessus pour que je puisse mieux vous aider.</p>",
+                    "is_system_message": True
+                }
+                conversation_history_global[session_id].append(error_message)
+            else:
+                conversation_history_global[session_id].append({"role": "user", "content": user_query})
+                start_time = time.time()
+                
+                confirmed_role = get_confirmed_role(session_id)
+                
+                # Recherche avec rôle confirmé
+                results, detected_role, role_confidence = search_similar_chunks_with_confirmed_role(
+                    user_query, search_index, use_faiss, chunk_embeddings, chunks_with_sources, 
+                    conversation_history_global[session_id], confirmed_role
+                )
+                
+                # Contexte des chunks trouvés
+                context_chunks = "\n\n".join([text for text, _, _ in results])
+                found_info = any(score > CONFIDENCE_THRESHOLD for _, _, score in results)
+                
+                # Génération de réponse avec le rôle confirmé
+                answer = generate_answer(user_query, context_chunks, conversation_history_global[session_id], found_info, detected_role)
+                processing_time = time.time() - start_time
+                
+                # Formatage des sources avec information de rôle
+                sources_html = format_sources(results, detected_role=detected_role)
+                freddy_html = create_freddy_logs(user_query, results, detected_role, role_confidence) + format_sources(results, for_freddy=True, detected_role=detected_role)
+                
+                conversation_history_global[session_id].append({
+                    "role": "assistant", 
+                    "content": answer,
+                    "sources": sources_html,
+                    "freddy_logs": freddy_html,
+                    "processing_time": f"{processing_time:.2f}s",
+                    "detected_role": detected_role,
+                    "role_confidence": role_confidence
+                })
     
-    conv = conversation_history_global.get(session.get('session_id'), [])
+    conv = conversation_history_global.get(session_id, [])
     current_datetime = datetime.now()
-    return render_template("index.html", conversation=conv, query="", current_datetime=current_datetime)
+    user_profile = session.get('user_profile', {})
+    
+    return render_template("index.html", 
+                         conversation=conv, 
+                         query="", 
+                         current_datetime=current_datetime,
+                         user_profile=user_profile,
+                         profile_mapping=profile_mapping)
+
 
 @app.route("/api/ask", methods=["POST"])
 def api_ask():
-    """Endpoint API pour la recherche."""
+    """Endpoint API pour la recherche avec gestion de rôle."""
     start_time = time.time()
     try:
         data = request.get_json()
         user_query = data.get("query", "").strip()
-        if not user_query:
+        role_selection = data.get("role_selection", None)
+        
+        if not user_query and not role_selection:
             return jsonify({"error": "Question vide"}), 400
         
         # Gestion de la session
@@ -767,15 +842,35 @@ def api_ask():
         session_id = session['session_id']
         if session_id not in conversation_history_global:
             conversation_history_global[session_id] = []
+        
+        # Gérer la sélection de rôle
+        if role_selection:
+            handle_role_selection(session_id, role_selection)
+            return jsonify({
+                "response": f"<p>Rôle <strong>{role_selection}</strong> sélectionné avec succès ! Vous pouvez maintenant poser vos questions.</p>",
+                "role_confirmed": True,
+                "selected_role": role_selection,
+                "status": "role_selected"
+            })
+        
+        # Vérifier si le rôle est confirmé
+        if not is_role_confirmed(session_id):
+            return jsonify({
+                "response": "<p>Veuillez d'abord sélectionner votre profil pour que je puisse mieux vous aider.</p>",
+                "role_confirmed": False,
+                "status": "role_required"
+            })
             
         # Ajout à l'historique de conversation
         conversation_history_global[session_id].append({"role": "user", "content": user_query})
         
-        # Recherche d'informations avec détection de rôle
+        confirmed_role = get_confirmed_role(session_id)
+        
+        # Recherche d'informations avec rôle confirmé
         try:
-            results, detected_role, role_confidence = search_similar_chunks(
+            results, detected_role, role_confidence = search_similar_chunks_with_confirmed_role(
                 user_query, search_index, use_faiss, chunk_embeddings, chunks_with_sources,
-                conversation_history_global[session_id]
+                conversation_history_global[session_id], confirmed_role
             )
             context_chunks = "\n\n".join([text for text, _, _ in results])
             found_info = any(score > CONFIDENCE_THRESHOLD for _, _, score in results)
@@ -784,10 +879,10 @@ def api_ask():
             results = [("Une erreur s'est produite lors de la recherche.", "error.txt", 0.1)]
             context_chunks = "Informations non disponibles en raison d'une erreur."
             found_info = False
-            detected_role = "Candidat"
-            role_confidence = 0.1
+            detected_role = confirmed_role or "Candidat"
+            role_confidence = 1.0 if confirmed_role else 0.1
         
-        # Génération de réponse avec le rôle détecté
+        # Génération de réponse avec le rôle confirmé
         answer = generate_answer(user_query, context_chunks, conversation_history_global[session_id], found_info, detected_role)
         
         # Formatage des sources et logs avec information de rôle
@@ -816,7 +911,9 @@ def api_ask():
             "sources_found": found_info,
             "processing_time": f"{processing_time:.2f}s",
             "detected_role": detected_role,
+            "confirmed_role": confirmed_role,
             "role_confidence": f"{role_confidence:.2f}",
+            "role_confirmed": True,
             "status": "success"
         })
         
@@ -824,7 +921,6 @@ def api_ask():
         logger.error(f"Erreur API globale: {e}")
         processing_time = time.time() - start_time
         
-        # Réponse d'erreur plus détaillée
         return jsonify({
             "response": f"<p>Désolé, une erreur s'est produite: {str(e)[:50]}...</p><p>Veuillez réessayer.</p>",
             "freddy_logs": f"<div class='freddy-logs'><div class='freddy-log-entry'><span class='log-action'>Erreur</span><span class='log-detail'>{str(e)[:100]}...</span></div></div>",
@@ -843,7 +939,22 @@ def api_role_info():
         "roles": {role: config["description"] for role, config in profile_mapping.items()},
         "status": "success"
     })
-
+@app.route("/api/reset-role", methods=["POST"])
+def api_reset_role():
+    """Permet de réinitialiser le rôle sélectionné."""
+    if 'user_profile' in session:
+        session.pop('user_profile')
+    
+    if 'session_id' in session:
+        session_id = session['session_id']
+        if session_id in conversation_history_global:
+            conversation_history_global[session_id] = []
+    
+    return jsonify({
+        "response": "<p>Rôle réinitialisé. Veuillez sélectionner votre nouveau profil.</p>",
+        "role_confirmed": False,
+        "status": "role_reset"
+    })
 @app.route('/static/<path:path>')
 def send_static(path):
     """Fournit les fichiers statiques."""
