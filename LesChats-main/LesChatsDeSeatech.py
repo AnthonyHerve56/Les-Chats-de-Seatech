@@ -8,7 +8,7 @@ import logging
 from datetime import datetime
 from flask import Flask, request, render_template, jsonify, send_from_directory, session
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv() #Charge les données dans l'environnement de développement
 # Importations ML et API
 try:
     import torch
