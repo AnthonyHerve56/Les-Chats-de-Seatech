@@ -9,6 +9,7 @@ from datetime import datetime
 from flask import Flask, request, render_template, jsonify, send_from_directory, session
 from dotenv import load_dotenv
 load_dotenv() #Charge les données de l'environnement de développement dnas le fichier main.
+
 # Importations ML et API
 try:
     import torch
@@ -58,6 +59,30 @@ ACRONYMS = {
     "UTLN": "Université de Toulon"
 }
 
+# Mapping des profils avec leurs descriptions et mots-clés de priorisation
+profile_mapping = {
+    "Étudiant": {
+        "description": "Fournis des informations utiles aux étudiants actuels de SeaTech : cours, emplois du temps, projets, vie associative, stages.",
+        "keywords": ["cours", "emploi du temps", "projet", "stage", "vie associative", "examen", "planning", "td", "tp", "association", "événement étudiant", "logement", "bourse"],
+        "priority_topics": ["cours", "planning", "examens", "stages", "projets"]
+    },
+    "Enseignant": {
+        "description": "Fournis des informations utiles aux enseignants de SeaTech : ressources pédagogiques, contacts administratifs, organisation des cours.",
+        "keywords": ["ressources pédagogiques", "contact administratif", "organisation", "enseignement", "programme", "évaluation", "moodle", "scolarité", "administration"],
+        "priority_topics": ["ressources", "administration", "organisation", "programmes"]
+    },
+    "Candidat": {
+        "description": "Fournis des informations utiles aux candidats intéressés par SeaTech : admissions, concours, dossiers, procédures, spécialités disponibles.",
+        "keywords": ["admission", "concours", "dossier", "procédure", "candidature", "inscription", "formation", "spécialité", "parcours", "prérequis", "sélection"],
+        "priority_topics": ["admissions", "formations", "candidature", "spécialités"]
+    },
+    "Alumni": {
+        "description": "Fournis des informations utiles aux anciens étudiants de SeaTech : réseau alumni, partenariats, événements, relations entreprises.",
+        "keywords": ["alumni", "réseau", "partenariat", "entreprise", "carrière", "emploi", "contact professionnel", "événement alumni", "relation entreprise"],
+        "priority_topics": ["réseau", "carrière", "partenariats", "emploi"]
+    }
+}
+
 # Pour l'exemple, nous définissons CONTACTS vide (à compléter selon vos besoins)
 CONTACTS = {}
 
@@ -86,6 +111,105 @@ else:
     logger.warning("Bibliothèques ML non disponibles")
 
 # ===== FONCTIONS UTILITAIRES =====
+def detect_user_role(query, conversation_history=None):
+    """
+    Détecte automatiquement le rôle de l'utilisateur basé sur sa question et l'historique.
+    Retourne le rôle détecté et un score de confiance.
+    """
+    query_lower = query.lower()
+    role_scores = {}
+    
+    # Analyse basée sur les mots-clés
+    for role, config in profile_mapping.items():
+        score = 0
+        keywords = config["keywords"]
+        
+        # Score basé sur la présence de mots-clés
+        for keyword in keywords:
+            if keyword in query_lower:
+                score += 2
+        
+        # Score basé sur les sujets prioritaires (poids plus élevé)
+        for priority in config["priority_topics"]:
+            if priority in query_lower:
+                score += 3
+                
+        role_scores[role] = score
+    
+    # Analyse de l'historique de conversation si disponible
+    if conversation_history:
+        for entry in conversation_history[-3:]:  # Dernières 3 interactions
+            if entry['role'] == 'user':
+                content_lower = entry['content'].lower()
+                for role, config in profile_mapping.items():
+                    for keyword in config["keywords"]:
+                        if keyword in content_lower:
+                            role_scores[role] += 1
+    
+    # Détection de phrases spécifiques
+    role_patterns = {
+        "Candidat": [r"comment (postuler|candidater|s'inscrire)", r"quelles sont les conditions", r"admission", r"je veux intégrer"],
+        "Étudiant": [r"mes cours", r"mon emploi du temps", r"quand est l'examen", r"projet de fin d'étude"],
+        "Enseignant": [r"ressources pour", r"contact administration", r"organisation des cours"],
+        "Alumni": [r"réseau", r"ancien élève", r"après diplôme", r"carrière"]
+    }
+    
+    for role, patterns in role_patterns.items():
+        for pattern in patterns:
+            if re.search(pattern, query_lower):
+                role_scores[role] += 4
+    
+    # Retourner le rôle avec le score le plus élevé
+    if role_scores:
+        best_role = max(role_scores, key=role_scores.get)
+        confidence = role_scores[best_role]
+        
+        # Si aucun score significatif, retourner "Candidat" par défaut (plus général)
+        if confidence == 0:
+            return "Candidat", 0.1
+        
+        return best_role, min(confidence / 10, 1.0)  # Normaliser entre 0 et 1
+    
+    return "Candidat", 0.1
+
+def filter_chunks_by_role(chunks_results, detected_role, role_confidence):
+    """
+    Filtre et réordonne les chunks en fonction du rôle détecté de l'utilisateur.
+    """
+    if role_confidence < 0.3:  # Si la confiance est faible, ne pas filtrer
+        return chunks_results
+    
+    role_config = profile_mapping.get(detected_role, profile_mapping["Candidat"])
+    keywords = role_config["keywords"]
+    priority_topics = role_config["priority_topics"]
+    
+    filtered_results = []
+    
+    for chunk_text, source, original_score in chunks_results:
+        chunk_lower = chunk_text.lower()
+        role_relevance_score = 0
+        
+        # Score basé sur les mots-clés du rôle
+        for keyword in keywords:
+            if keyword in chunk_lower:
+                role_relevance_score += 0.1
+        
+        # Score bonus pour les sujets prioritaires
+        for priority in priority_topics:
+            if priority in chunk_lower:
+                role_relevance_score += 0.2
+        
+        # Score combiné (original + pertinence rôle)
+        combined_score = original_score + (role_relevance_score * role_confidence)
+        
+        filtered_results.append((chunk_text, source, combined_score, role_relevance_score))
+    
+    # Trier par score combiné
+    filtered_results = sorted(filtered_results, key=lambda x: x[2], reverse=True)
+    
+    # Reconvertir au format original en gardant le score combiné
+    return [(text, source, combined_score) for text, source, combined_score, _ in filtered_results]
+
 def expand_acronyms_in_query(query):
     """Étend les acronymes dans la requête avec une meilleure détection."""
     expanded_query = query
@@ -320,32 +444,41 @@ def setup_search_index(embeddings):
         logger.error(f"Erreur initialisation index: {e}")
         return None, False
 
-def search_similar_chunks(query, index, is_faiss, embeddings, chunks_data, top_n=5):
-    """Recherche les chunks les plus similaires à la requête."""
+def search_similar_chunks(query, index, is_faiss, embeddings, chunks_data, conversation_history=None, top_n=5):
+    """Recherche les chunks les plus similaires à la requête avec filtrage par rôle."""
     if not embedding_model or not index:
-        return keyword_search(query, chunks_data, top_n)
-    try:
-        query_expanded = expand_acronyms_in_query(query)
-        query_embedding = embedding_model.encode(query_expanded, convert_to_tensor=False)
-        query_embedding = np.array(query_embedding, dtype=np.float32).reshape(1, -1)
-        if is_faiss:
-            distances, indices = index.search(query_embedding, min(top_n * 2, len(chunks_data)))
-            distances, indices = distances[0], indices[0]
-            results = []
-            for i, idx in enumerate(indices):
-                if 0 <= idx < len(chunks_data):
-                    score = 1 / (1 + distances[i])
-                    results.append((chunks_data[idx][0], chunks_data[idx][1], score))
-        else:
-            similarities = cosine_similarity(query_embedding, embeddings)[0]
-            top_indices = np.argsort(similarities)[-top_n*2:][::-1]
-            results = [(chunks_data[idx][0], chunks_data[idx][1], similarities[idx])
-                       for idx in top_indices if similarities[idx] > 0.1]
-        results = sorted(results, key=lambda x: x[2], reverse=True)[:top_n]
-        return results
-    except Exception as e:
-        logger.error(f"Erreur de recherche: {e}")
-        return keyword_search(query, chunks_data, top_n)
+        results = keyword_search(query, chunks_data, top_n)
+    else:
+        try:
+            query_expanded = expand_acronyms_in_query(query)
+            query_embedding = embedding_model.encode(query_expanded, convert_to_tensor=False)
+            query_embedding = np.array(query_embedding, dtype=np.float32).reshape(1, -1)
+            if is_faiss:
+                distances, indices = index.search(query_embedding, min(top_n * 2, len(chunks_data)))
+                distances, indices = distances[0], indices[0]
+                results = []
+                for i, idx in enumerate(indices):
+                    if 0 <= idx < len(chunks_data):
+                        score = 1 / (1 + distances[i])
+                        results.append((chunks_data[idx][0], chunks_data[idx][1], score))
+            else:
+                similarities = cosine_similarity(query_embedding, embeddings)[0]
+                top_indices = np.argsort(similarities)[-top_n*2:][::-1]
+                results = [(chunks_data[idx][0], chunks_data[idx][1], similarities[idx])
+                           for idx in top_indices if similarities[idx] > 0.1]
+            results = sorted(results, key=lambda x: x[2], reverse=True)[:top_n*2]
+        except Exception as e:
+            logger.error(f"Erreur de recherche: {e}")
+            results = keyword_search(query, chunks_data, top_n)
+    
+    # Détection du rôle et filtrage
+    detected_role, role_confidence = detect_user_role(query, conversation_history)
+    logger.info(f"Rôle détecté: {detected_role} (confiance: {role_confidence:.2f})")
+    
+    # Filtrer et réorganiser les résultats selon le rôle
+    filtered_results = filter_chunks_by_role(results, detected_role, role_confidence)
+    
+    return filtered_results[:top_n], detected_role, role_confidence
 
 def keyword_search(query, chunks_data, top_n=5):
     """Recherche par mots-clés en fallback."""
@@ -366,9 +499,14 @@ def keyword_search(query, chunks_data, top_n=5):
     return sorted(results, key=lambda x: x[2], reverse=True)[:top_n]
 
 # ===== FORMATAGE DES SOURCES ET LOGS =====
-def format_sources(results, for_freddy=False):
+def format_sources(results, for_freddy=False, detected_role=None):
     """Formate les résultats en HTML pour l'affichage des sources."""
     html = '<div class="sources-container">'
+    
+    if detected_role:
+        role_info = profile_mapping.get(detected_role, {})
+        html += f'<div class="role-detection-info"><strong>Profil détecté:</strong> {detected_role}</div>'
+    
     for text, source, score in results:
         relevance_class = "high-relevance" if score > 0.8 else "medium-relevance" if score > 0.6 else "low-relevance"
         if for_freddy:
@@ -395,12 +533,13 @@ def format_sources(results, for_freddy=False):
     html += '</div>'
     return html
 
-def create_freddy_logs(query, results):
+def create_freddy_logs(query, results, detected_role=None, role_confidence=None):
     """Crée des logs HTML détaillés pour le module Freddy."""
     current_time = datetime.now().strftime("%H:%M:%S")
     high_relevance = sum(1 for _, _, score in results if score > 0.8)
     medium_relevance = sum(1 for _, _, score in results if 0.6 < score <= 0.8)
     low_relevance = sum(1 for _, _, score in results if score <= 0.6)
+    
     html = f'''
     <div class="freddy-logs">
         <div class="freddy-log-entry">
@@ -410,9 +549,23 @@ def create_freddy_logs(query, results):
         <div class="freddy-log-entry">
             <span class="log-detail">Recherche pour : <strong>"{query}"</strong></span>
         </div>
+    '''
+    
+    if detected_role and role_confidence:
+        html += f'''
         <div class="freddy-log-entry">
             <span class="log-time">{current_time}</span>
-            <span class="log-action">Résultats de recherche</span>
+            <span class="log-action">Détection de profil</span>
+        </div>
+        <div class="freddy-log-entry">
+            <span class="log-detail">Profil détecté : <strong>{detected_role}</strong> (confiance: {role_confidence:.2f})</span>
+        </div>
+        '''
+    
+    html += f'''
+        <div class="freddy-log-entry">
+            <span class="log-time">{current_time}</span>
+            <span class="log-action">Résultats filtrés par profil</span>
         </div>
         <div class="freddy-log-entry">
             <span class="log-detail">Détails : 
@@ -426,7 +579,7 @@ def create_freddy_logs(query, results):
     return html
 
 # ===== GÉNÉRATION DE RÉPONSE AVEC MÉMOIRE DE CONVERSATION =====
-def generate_answer(query, context, conversation_history, found_info=False):
+def generate_answer(query, context, conversation_history, found_info=False, detected_role=None):
     """
     Génère une réponse basée sur le contexte et l'historique complet de la conversation.
     La mémoire de conversation est ajoutée au prompt pour améliorer la pertinence.
@@ -437,20 +590,29 @@ def generate_answer(query, context, conversation_history, found_info=False):
          for entry in conversation_history]
     )
     
+    # Instructions spécifiques au rôle détecté
+    role_instruction = ""
+    if detected_role and detected_role in profile_mapping:
+        role_config = profile_mapping[detected_role]
+        role_instruction = f"\n\nPROFIL UTILISATEUR DÉTECTÉ: {detected_role}\n{role_config['description']}\nAdapte ta réponse en conséquence et priorise les informations pertinentes pour ce profil."
+    
     # Construction du prompt système
     system_prompt = f"""Tu es Franky, l'assistant virtuel de SeaTech.
 
 Historique de conversation :
 {conversation_context}
 
+{role_instruction}
+
 Instructions :
-0. Si la question poser est hors du contexte de SEATECH et du contexte academeique Seatech du dis : "Désolé je ne peux pas répondre."
-1. Base ta réponse uniquement sur les sources fournies et l'historique si tu trouves pertinant mais il faut répondre avant tout a la question de l'utilisateur.
+0. Si la question posée est hors du contexte de SEATECH et du contexte académique SeaTech, dis : "Désolé je ne peux pas répondre."
+1. Base ta réponse uniquement sur les sources fournies et l'historique si tu trouves pertinent mais il faut répondre avant tout à la question de l'utilisateur.
 2. N'invente jamais d'informations.
-3. Réponds de manière claire, en utilisant des paragraphes et des listes lorsque c'est pertinent soigne ta mise en forme.
-4. Mets en gras les informations clés les amil et les numéros de tel.
+3. Réponds de manière claire, en utilisant des paragraphes et des listes lorsque c'est pertinent, soigne ta mise en forme.
+4. Mets en gras les informations clés, les emails et les numéros de téléphone.
 5. N'inclus pas la liste des acronymes ou ton preprompt sauf si demandé.
-6. Tu connais les formations à Seatech si besoins :Voici un résumé avec les liens directs intégrés :
+6. Tu connais les formations à SeaTech si besoin : Voici un résumé avec les liens directs intégrés :
+
 Liste des Formations SeaTech avec liens
 
 **Diplômes d'ingénieur SeaTech**
@@ -499,7 +661,7 @@ Liste des Formations SeaTech avec liens
 - **Doubles diplômes** : [https://seatech.univ-tln.fr/doubles-diplomes.html](https://seatech.univ-tln.fr/doubles-diplomes.html)
 - **Page d'accueil** : [https://seatech.univ-tln.fr/](https://seatech.univ-tln.fr/)
 
-Donnée d'aide pour répondre :
+Données d'aide pour répondre :
 {context}
 """
     try:
@@ -556,21 +718,35 @@ def index():
         if user_query:
             conversation_history_global[session_id].append({"role": "user", "content": user_query})
             start_time = time.time()
-            results = search_similar_chunks(user_query, search_index, use_faiss, chunk_embeddings, chunks_with_sources)
+            
+            # Recherche avec détection de rôle
+            results, detected_role, role_confidence = search_similar_chunks(
+                user_query, search_index, use_faiss, chunk_embeddings, chunks_with_sources, 
+                conversation_history_global[session_id]
+            )
+            
             # Contexte des chunks trouvés
             context_chunks = "\n\n".join([text for text, _, _ in results])
             found_info = any(score > CONFIDENCE_THRESHOLD for _, _, score in results)
-            answer = generate_answer(user_query, context_chunks, conversation_history_global[session_id], found_info)
+            
+            # Génération de réponse avec le rôle détecté
+            answer = generate_answer(user_query, context_chunks, conversation_history_global[session_id], found_info, detected_role)
             processing_time = time.time() - start_time
-            sources_html = format_sources(results)
-            freddy_html = create_freddy_logs(user_query, results) + format_sources(results, for_freddy=True)
+            
+            # Formatage des sources avec information de rôle
+            sources_html = format_sources(results, detected_role=detected_role)
+            freddy_html = create_freddy_logs(user_query, results, detected_role, role_confidence) + format_sources(results, for_freddy=True, detected_role=detected_role)
+            
             conversation_history_global[session_id].append({
                 "role": "assistant", 
                 "content": answer,
                 "sources": sources_html,
                 "freddy_logs": freddy_html,
-                "processing_time": f"{processing_time:.2f}s"
+                "processing_time": f"{processing_time:.2f}s",
+                "detected_role": detected_role,
+                "role_confidence": role_confidence
             })
+    
     conv = conversation_history_global.get(session.get('session_id'), [])
     current_datetime = datetime.now()
     return render_template("index.html", conversation=conv, query="", current_datetime=current_datetime)
@@ -595,9 +771,12 @@ def api_ask():
         # Ajout à l'historique de conversation
         conversation_history_global[session_id].append({"role": "user", "content": user_query})
         
-        # Recherche d'informations
+        # Recherche d'informations avec détection de rôle
         try:
-            results = search_similar_chunks(user_query, search_index, use_faiss, chunk_embeddings, chunks_with_sources)
+            results, detected_role, role_confidence = search_similar_chunks(
+                user_query, search_index, use_faiss, chunk_embeddings, chunks_with_sources,
+                conversation_history_global[session_id]
+            )
             context_chunks = "\n\n".join([text for text, _, _ in results])
             found_info = any(score > CONFIDENCE_THRESHOLD for _, _, score in results)
         except Exception as search_error:
@@ -605,13 +784,15 @@ def api_ask():
             results = [("Une erreur s'est produite lors de la recherche.", "error.txt", 0.1)]
             context_chunks = "Informations non disponibles en raison d'une erreur."
             found_info = False
+            detected_role = "Candidat"
+            role_confidence = 0.1
         
-        # Génération de réponse
-        answer = generate_answer(user_query, context_chunks, conversation_history_global[session_id], found_info)
+        # Génération de réponse avec le rôle détecté
+        answer = generate_answer(user_query, context_chunks, conversation_history_global[session_id], found_info, detected_role)
         
-        # Formatage des sources et logs
-        sources_html = format_sources(results)
-        freddy_html = create_freddy_logs(user_query, results) + format_sources(results, for_freddy=True)
+        # Formatage des sources et logs avec information de rôle
+        sources_html = format_sources(results, detected_role=detected_role)
+        freddy_html = create_freddy_logs(user_query, results, detected_role, role_confidence) + format_sources(results, for_freddy=True, detected_role=detected_role)
         
         # Calcul du temps de traitement
         processing_time = time.time() - start_time
@@ -622,7 +803,9 @@ def api_ask():
             "content": answer,
             "sources": sources_html,
             "freddy_logs": freddy_html,
-            "processing_time": f"{processing_time:.2f}s"
+            "processing_time": f"{processing_time:.2f}s",
+            "detected_role": detected_role,
+            "role_confidence": role_confidence
         })
         
         # Réponse de l'API
@@ -632,6 +815,8 @@ def api_ask():
             "sources": sources_html,
             "sources_found": found_info,
             "processing_time": f"{processing_time:.2f}s",
+            "detected_role": detected_role,
+            "role_confidence": f"{role_confidence:.2f}",
             "status": "success"
         })
         
@@ -645,9 +830,19 @@ def api_ask():
             "freddy_logs": f"<div class='freddy-logs'><div class='freddy-log-entry'><span class='log-action'>Erreur</span><span class='log-detail'>{str(e)[:100]}...</span></div></div>",
             "sources_found": False,
             "processing_time": f"{processing_time:.2f}s",
+            "detected_role": "Candidat",
+            "role_confidence": "0.00",
             "status": "error",
             "error_type": str(type(e).__name__)
         }), 500
+
+@app.route("/api/role-info", methods=["GET"])
+def api_role_info():
+    """Endpoint pour récupérer les informations sur les rôles disponibles."""
+    return jsonify({
+        "roles": {role: config["description"] for role, config in profile_mapping.items()},
+        "status": "success"
+    })
 
 @app.route('/static/<path:path>')
 def send_static(path):
