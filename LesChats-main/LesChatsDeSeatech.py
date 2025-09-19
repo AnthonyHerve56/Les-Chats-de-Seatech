@@ -4,6 +4,7 @@ import json
 import pickle
 import time
 import uuid
+import vosk
 import logging
 from datetime import datetime
 from flask import Flask, request, render_template, jsonify, send_from_directory, session
@@ -969,3 +970,48 @@ if __name__ == "__main__":
     templates_dir = os.path.join(BASE_DIR, "templates")
     os.makedirs(templates_dir, exist_ok=True)
     app.run(host="0.0.0.0", port=5000, debug=True)
+    
+    # Charger modèle Vosk une fois au démarrage
+vosk_model = vosk.Model("model-fr")
+
+@app.route('/api/ask-audio', methods=['POST'])
+def ask_audio():
+    if 'audio' not in request.files:
+        return jsonify({"error": "Aucun fichier audio reçu"}), 400
+
+    audio_file = request.files['audio']
+    wf = wave.open(io.BytesIO(audio_file.read()), "rb")
+
+    if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getframerate() not in [8000, 16000]:
+        return jsonify({"error": "Format audio non supporté. Utilise WAV PCM mono 16kHz."}), 400
+
+    rec = vosk.KaldiRecognizer(vosk_model, wf.getframerate())
+    text = ""
+
+    while True:
+        data = wf.readframes(4000)
+        if len(data) == 0:
+            break
+        if rec.AcceptWaveform(data):
+            res = json.loads(rec.Result())
+            text += " " + res.get("text", "")
+
+    final_res = json.loads(rec.FinalResult())
+    text += " " + final_res.get("text", "")
+
+    text = text.strip()
+    if not text:
+        return jsonify({"response": "Désolé, je n’ai pas compris l’audio."})
+
+    # Réutiliser ton pipeline existant
+    session_id = request.cookies.get("session_id", "default")
+    search_results, freddy_logs = search_similar_chunks_with_confirmed_role(text, session_id)
+    answer, sources, processing_time = generate_answer(text, search_results, session_id, user_profile)
+
+    return jsonify({
+        "response": answer,
+        "sources": sources,
+        "freddy_logs": freddy_logs,
+        "processing_time": processing_time,
+        "query": text
+    })

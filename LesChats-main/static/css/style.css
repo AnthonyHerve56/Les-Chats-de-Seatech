@@ -1245,3 +1245,15 @@ h1 {
             color: #856404;
             text-align: center;
         }
+        .mic-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    margin-left: 8px;
+    color: #444;
+}
+.mic-button:disabled {
+    color: #aaa;
+    cursor: not-allowed;
+}
