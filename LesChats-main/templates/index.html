@@ -563,34 +563,35 @@
             }
 
             // === Reconnaissance vocale ===
-            const voiceBtn = document.getElementById('voiceBtn');
-            if (voiceBtn && 'webkitSpeechRecognition' in window) {
+            const micBtn = document.getElementById('micButton'); // utilise l'ID réel du bouton
+            if (micBtn && 'webkitSpeechRecognition' in window) {
                 const recognition = new webkitSpeechRecognition();
                 recognition.lang = "fr-FR";
                 recognition.continuous = false;
                 recognition.interimResults = false;
 
-                voiceBtn.addEventListener('click', () => {
+                micBtn.addEventListener('click', () => {
                     recognition.start();
-                    voiceBtn.classList.add("listening");
+                    micBtn.classList.add("listening"); // effet visuel pendant l'écoute
                 });
 
                 recognition.onresult = (event) => {
                     const transcript = event.results[0][0].transcript;
-                    queryInput.value = transcript;
-                    chatForm.requestSubmit(); // Envoie la question automatiquement
-                    voiceBtn.classList.remove("listening");
+                    queryInput.value = transcript;      // place le texte reconnu dans la barre de saisie
+                    //chatForm.requestSubmit();           // envoie la question automatiquement 
+                    micBtn.classList.remove("listening");
                 };
 
                 recognition.onerror = (event) => {
                     console.error("Erreur vocale:", event.error);
-                    voiceBtn.classList.remove("listening");
+                    micBtn.classList.remove("listening");
                 };
 
                 recognition.onend = () => {
-                    voiceBtn.classList.remove("listening");
+                    micBtn.classList.remove("listening");
                 };
             }
+
         });
     </script>
 </body>

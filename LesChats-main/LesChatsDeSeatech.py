@@ -5,6 +5,8 @@ import pickle
 import time
 import uuid
 import vosk
+import io
+import wave
 import logging
 from datetime import datetime
 from flask import Flask, request, render_template, jsonify, send_from_directory, session
@@ -751,6 +753,13 @@ search_index, use_faiss = setup_search_index(chunk_embeddings)
 app = Flask(__name__)
 app.secret_key = 'seatech_chat_secret_key'
 conversation_history_global = {}
+# ajout Daly
+
+# Charger modèle Vosk une seule fois au démarrage
+vosk_model = vosk.Model("models/vosk-model-fr-0.6-linto-2.2.0")
+
+
+#fin ajout
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -961,19 +970,6 @@ def send_static(path):
     """Fournit les fichiers statiques."""
     return send_from_directory('static', path)
 
-if __name__ == "__main__":
-    # Création des répertoires statiques si nécessaires
-    if not os.path.exists("static"):
-        os.makedirs("static", exist_ok=True)
-        os.makedirs("static/css", exist_ok=True)
-        os.makedirs("static/img", exist_ok=True)
-    templates_dir = os.path.join(BASE_DIR, "templates")
-    os.makedirs(templates_dir, exist_ok=True)
-    app.run(host="0.0.0.0", port=5000, debug=True)
-    
-    # Charger modèle Vosk une fois au démarrage
-vosk_model = vosk.Model("model-fr")
-
 @app.route('/api/ask-audio', methods=['POST'])
 def ask_audio():
     if 'audio' not in request.files:
@@ -1015,3 +1011,17 @@ def ask_audio():
         "processing_time": processing_time,
         "query": text
     })
+
+if __name__ == "__main__":
+    # Création des répertoires statiques si nécessaires
+    if not os.path.exists("static"):
+        os.makedirs("static", exist_ok=True)
+        os.makedirs("static/css", exist_ok=True)
+        os.makedirs("static/img", exist_ok=True)
+    templates_dir = os.path.join(BASE_DIR, "templates")
+    os.makedirs(templates_dir, exist_ok=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
+    
+    # Charger modèle Vosk une fois au démarrage
+#vosk_model = vosk.Model("model-fr")
+
