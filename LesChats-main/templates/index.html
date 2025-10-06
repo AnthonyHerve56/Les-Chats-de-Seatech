@@ -241,6 +241,12 @@
                         %}disabled{% endif %}>
                         <i class="fas fa-microphone"></i>
                     </button>
+
+                    <!-- Bouton : mode conversation-->
+                     <button type="button" id="conversationBtn" class="conversation-button">
+                        <i class="fas fa-comments"></i> Conversation
+                    </button>
+
                     <button type="submit" class="send-button" {% if not user_profile.get('confirmed') %}disabled{% endif
                         %}>
                         Envoyer
@@ -328,6 +334,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            let isConversationMode = false; // mode conversation activé/désactivé
+
+
             const chatForm = document.getElementById('chatForm');
             const chatHistory = document.getElementById('chatHistory');
             const loadingIndicator = document.getElementById('loadingIndicator');
@@ -537,6 +546,24 @@
                             chatHistory.appendChild(botMessageDiv);
                             queryInput.value = '';
                             queryInput.focus();
+                            //ajout Daly
+                            // Lecture vocale de la réponse (TTS)
+                            // Lecture vocale seulement si mode conversation actif
+                            if (isConversationMode && 'speechSynthesis' in window && data.response) {
+                                let textToRead = data.response
+                                    .replace(/<[^>]+>/g, ' ')
+                                    .replace(/[^\w\sàâäçéèêëîïôöùûüÿñœ]/gi, '')
+                                    .replace(/\s+/g, ' ')
+                                    .trim();
+                                const utterance = new SpeechSynthesisUtterance(textToRead);
+                                utterance.lang = "fr-FR";
+                                utterance.rate = 1.0;
+                                utterance.pitch = 1.0;
+                                speechSynthesis.cancel();
+                                speechSynthesis.speak(utterance);
+                            }
+
+                            //fin ajout
                             scrollToBottom();
                             initButtons();
                         })
@@ -576,11 +603,29 @@
                 });
 
                 recognition.onresult = (event) => {
-                    const transcript = event.results[0][0].transcript;
-                    queryInput.value = transcript;      // place le texte reconnu dans la barre de saisie
-                    //chatForm.requestSubmit();           // envoie la question automatiquement 
-                    micBtn.classList.remove("listening");
+                let transcript = event.results[0][0].transcript;
+
+                // Corrections automatiques pour SeaTech
+                const corrections = {
+                    "steak": "SeaTech",
+                    "scitec": "SeaTech",
+                    "sitec": "SeaTech",
+                    "citech": "SeaTech",
+                    "citek": "SeaTech",
+                    "sutec": "SeaTech",
+                    "sitac": "SeaTech",
                 };
+
+                for (const [wrong, correct] of Object.entries(corrections)) {
+                    const regex = new RegExp(`\\b${wrong}\\b`, "gi"); // cherche le mot entier, insensible à la casse
+                    transcript = transcript.replace(regex, correct);
+                }
+
+                queryInput.value = transcript;      // place le texte corrigé dans la barre de saisie
+                //chatForm.requestSubmit();         // si tu veux envoyer auto, tu décommentes
+                micBtn.classList.remove("listening");
+                };
+
 
                 recognition.onerror = (event) => {
                     console.error("Erreur vocale:", event.error);
@@ -592,7 +637,100 @@
                 };
             }
 
-        });
+        
+                
+        // === Mode conversation ===
+        const conversationBtn = document.getElementById("conversationBtn");
+        if (conversationBtn && 'webkitSpeechRecognition' in window) {
+            const convRecognition = new webkitSpeechRecognition();
+            convRecognition.lang = "fr-FR";
+            convRecognition.continuous = false;
+            convRecognition.interimResults = false;
+
+            // ✅ Toggle ON/OFF du mode conversation
+            conversationBtn.addEventListener("click", () => {
+                isConversationMode = !isConversationMode;
+
+                if (isConversationMode) {
+                    conversationBtn.classList.add("active");
+                    conversationBtn.innerHTML = '<i class="fas fa-comments"></i> Mode conversation ON';
+                    convRecognition.start();
+                } else {
+                    conversationBtn.classList.remove("active");
+                    conversationBtn.innerHTML = '<i class="fas fa-comments"></i> Conversation';
+                    convRecognition.stop();
+                    speechSynthesis.cancel(); // stoppe toute lecture en cours
+                }
+            });
+
+            convRecognition.onresult = (event) => {
+                let transcript = event.results[0][0].transcript;
+
+                // Corrections automatiques pour SeaTech
+                const corrections = { "steak": "SeaTech", "scitec": "SeaTech", "sitec": "SeaTech" };
+                for (const [wrong, correct] of Object.entries(corrections)) {
+                    const regex = new RegExp(`\\b${wrong}\\b`, "gi");
+                    transcript = transcript.replace(regex, correct);
+                }
+
+                // Envoi automatique si mode conversation actif
+                if (isConversationMode) {
+                    fetch('/api/ask', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query: transcript, mode: "conversation" }),
+                        credentials: 'same-origin'
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            const botMessageDiv = document.createElement('article');
+                            botMessageDiv.className = 'message bot-message';
+                            botMessageDiv.innerHTML = `
+                                <div class="message-avatar">
+                                    <img src="${window.location.origin}/static/img/franky.png" alt="Franky" class="avatar" loading="lazy">
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-header"><strong>Franky</strong></div>
+                                    ${data.response}
+                                </div>`;
+                            chatHistory.appendChild(botMessageDiv);
+                            scrollToBottom();
+
+                            // ✅ Lecture vocale courte et propre
+                            if ('speechSynthesis' in window && isConversationMode) {
+                                let textToRead = data.response
+                                    .replace(/<[^>]+>/g, ' ')        // supprime balises HTML
+                                    .replace(/[^\w\sàâäçéèêëîïôöùûüÿñœ]/gi, '') // supprime symboles
+                                    .replace(/\s+/g, ' ')            // normalise espaces
+                                    .trim();
+
+                                const utterance = new SpeechSynthesisUtterance(textToRead);
+                                utterance.lang = "fr-FR";
+                                utterance.rate = 1.0;
+                                utterance.pitch = 1.0;
+                                speechSynthesis.cancel(); // stoppe lectures précédentes
+                                speechSynthesis.speak(utterance);
+                            }
+
+                            convRecognition.start(); // relance automatiquement pour écoute suivante
+                        })
+                        .catch(error => {
+                            console.error("Erreur conversation:", error);
+                        });
+                }
+            };
+
+            convRecognition.onerror = (event) => {
+                console.error("Erreur vocale (mode conv):", event.error);
+                conversationBtn.classList.remove("listening");
+            };
+
+            convRecognition.onend = () => {
+                if (isConversationMode) convRecognition.start(); // boucle tant que mode actif
+            };
+        }
+
+    });
     </script>
 </body>
 

@@ -843,6 +843,13 @@ def api_ask():
         user_query = data.get("query", "").strip()
         role_selection = data.get("role_selection", None)
         
+        # AJOUT  Daly
+        if data.get("mode") == "conversation":
+            prompt = "Réponds de façon brève, 1 à 2 phrases maximum, pour être lue à voix haute."
+        else:
+            prompt = "Réponse normale"
+        #  Fin ajout
+        
         if not user_query and not role_selection:
             return jsonify({"error": "Question vide"}), 400
         
