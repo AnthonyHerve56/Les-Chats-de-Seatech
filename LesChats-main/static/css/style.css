@@ -1257,3 +1257,20 @@ h1 {
     color: #aaa;
     cursor: not-allowed;
 }
+
+/* décale légèrement le bouton conversation vers la droite */
+.chat-form .conversation-button {
+    margin-left: 12px; /* augmente si tu veux plus d'espace */
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #fff;
+    cursor: pointer;
+}
+
+/* style quand actif */
+.chat-form .conversation-button.active {
+    background: #2ecc71;
+    color: #fff;
+    border-color: #27ae60;
+}
