@@ -1270,7 +1270,7 @@ h1 {
 
 /* style quand actif */
 .chat-form .conversation-button.active {
-    background: #2ecc71;
+    background: red;
     color: #fff;
     border-color: #27ae60;
 }

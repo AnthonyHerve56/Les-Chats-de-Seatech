@@ -244,7 +244,7 @@
 
                     <!-- Bouton : mode conversation-->
                      <button type="button" id="conversationBtn" class="conversation-button">
-                        <i class="fas fa-comments"></i> Conversation
+                        <i class="fas fa-comments"></i> Start conversation
                     </button>
 
                     <button type="submit" class="send-button" {% if not user_profile.get('confirmed') %}disabled{% endif
@@ -653,11 +653,11 @@
 
                 if (isConversationMode) {
                     conversationBtn.classList.add("active");
-                    conversationBtn.innerHTML = '<i class="fas fa-comments"></i> Mode conversation ON';
+                    conversationBtn.innerHTML = '<i class="fas fa-comments"></i> Stop conversation';
                     convRecognition.start();
                 } else {
                     conversationBtn.classList.remove("active");
-                    conversationBtn.innerHTML = '<i class="fas fa-comments"></i> Conversation';
+                    conversationBtn.innerHTML = '<i class="fas fa-comments"></i> Start conversation';
                     convRecognition.stop();
                     speechSynthesis.cancel(); // stoppe toute lecture en cours
                 }
