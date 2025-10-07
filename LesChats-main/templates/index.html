@@ -1,18 +1,15 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Les Chats De SeaTech - Votre guide félin pour l'école d'ingénieurs de l'Université de Toulon">
+    <meta name="description" content="Les Chats De SeaTech - Votre guide félin pour l'école d'ingénieurs de l'Université de Toulon">
     <title>Les Chats De SeaTech</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='img/seatech_logo.png') }}" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
 </head>
-
 <body>
     <div class="main-container">
         <!-- Sidebar -->
@@ -20,42 +17,32 @@
             <div class="sidebar-header">
                 <h2>Les Chats De SeaTech</h2>
                 <div class="cats-logo">
-                    <img src="{{ url_for('static', filename='img/franky.png') }}" alt="Franky" class="cat-avatar"
-                        loading="lazy">
-                    <img src="{{ url_for('static', filename='img/freddy.png') }}" alt="Freddy" class="cat-avatar"
-                        loading="lazy">
+                    <img src="{{ url_for('static', filename='img/franky.png') }}" alt="Franky" class="cat-avatar" loading="lazy">
+                    <img src="{{ url_for('static', filename='img/freddy.png') }}" alt="Freddy" class="cat-avatar" loading="lazy">
                 </div>
             </div>
             <nav>
                 <div class="sidebar-section">
                     <h3>Liens SeaTech</h3>
                     <ul>
-                        <li><a href="https://seatech.univ-tln.fr/" target="_blank" rel="noopener">SeaTech Officiel</a>
-                        </li>
-                        <li><a href="https://www.univ-tln.fr/" target="_blank" rel="noopener">Université de Toulon</a>
-                        </li>
+                        <li><a href="https://seatech.univ-tln.fr/" target="_blank" rel="noopener">SeaTech Officiel</a></li>
+                        <li><a href="https://www.univ-tln.fr/" target="_blank" rel="noopener">Université de Toulon</a></li>
                     </ul>
                 </div>
                 <div class="sidebar-section">
                     <h3>Formations</h3>
                     <ul>
-                        <li><a href="https://seatech.univ-tln.fr/devenir-ingenieur" target="_blank"
-                                rel="noopener">Devenir Ingénieur</a></li>
-                        <li><a href="https://seatech.univ-tln.fr/Formation-d-ingenieurs-Materiaux-par-apprentissage.html"
-                                target="_blank" rel="noopener">Matériaux (Apprentissage)</a></li>
-                        <li><a href="https://seatech.univ-tln.fr/Formation-d-ingenieurs-en-systemes-numeriques-par-apprentissage.html"
-                                target="_blank" rel="noopener">Systèmes Numériques (Apprentissage)</a></li>
+                        <li><a href="https://seatech.univ-tln.fr/devenir-ingenieur" target="_blank" rel="noopener">Devenir Ingénieur</a></li>
+                        <li><a href="https://seatech.univ-tln.fr/Formation-d-ingenieurs-Materiaux-par-apprentissage.html" target="_blank" rel="noopener">Matériaux (Apprentissage)</a></li>
+                        <li><a href="https://seatech.univ-tln.fr/Formation-d-ingenieurs-en-systemes-numeriques-par-apprentissage.html" target="_blank" rel="noopener">Systèmes Numériques (Apprentissage)</a></li>
                     </ul>
                 </div>
                 <div class="sidebar-section">
                     <h3>Informations</h3>
                     <ul>
-                        <li><a href="https://seatech.univ-tln.fr/recherche" target="_blank" rel="noopener">Recherche</a>
-                        </li>
-                        <li><a href="https://seatech.univ-tln.fr/international" target="_blank"
-                                rel="noopener">International</a></li>
-                        <li><a href="https://seatech.univ-tln.fr/Contacts.html" target="_blank"
-                                rel="noopener">Contacts</a></li>
+                        <li><a href="https://seatech.univ-tln.fr/recherche" target="_blank" rel="noopener">Recherche</a></li>
+                        <li><a href="https://seatech.univ-tln.fr/international" target="_blank" rel="noopener">International</a></li>
+                        <li><a href="https://seatech.univ-tln.fr/Contacts.html" target="_blank" rel="noopener">Contacts</a></li>
                     </ul>
                 </div>
             </nav>
@@ -68,8 +55,7 @@
         <main class="container">
             <header class="header">
                 <div class="logo-container">
-                    <img src="{{ url_for('static', filename='img/seatech_logo.png') }}" alt="Logo SeaTech" class="logo"
-                        width="250" height="auto">
+                    <img src="{{ url_for('static', filename='img/seatech_logo.png') }}" alt="Logo SeaTech" class="logo" width="250" height="auto">
                 </div>
                 <h1>Les Chats De SeaTech</h1>
                 <p class="subtitle">Votre guide félin pour l'école d'ingénieurs de l'Université de Toulon</p>
@@ -82,7 +68,7 @@
                     <h3><i class="fas fa-user-circle"></i> Choisissez votre profil</h3>
                     <p>Pour mieux vous aider, veuillez sélectionner votre profil :</p>
                 </div>
-
+                
                 <div class="role-buttons-grid">
                     <div class="role-button" data-role="Étudiant">
                         <div class="role-button-header">
@@ -90,33 +76,30 @@
                             <div class="role-title">Étudiant</div>
                         </div>
                         <div class="role-description">
-                            Étudiant actuel de SeaTech cherchant des informations sur les cours, emplois du temps,
-                            projets, vie associative...
+                            Étudiant actuel de SeaTech cherchant des informations sur les cours, emplois du temps, projets, vie associative...
                         </div>
                     </div>
-
+                    
                     <div class="role-button" data-role="Candidat">
                         <div class="role-button-header">
                             <div class="role-icon"><i class="fas fa-user-plus"></i></div>
                             <div class="role-title">Candidat</div>
                         </div>
                         <div class="role-description">
-                            Candidat intéressé par SeaTech : admissions, concours, formations, spécialités
-                            disponibles...
+                            Candidat intéressé par SeaTech : admissions, concours, formations, spécialités disponibles...
                         </div>
                     </div>
-
+                    
                     <div class="role-button" data-role="Enseignant">
                         <div class="role-button-header">
                             <div class="role-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                             <div class="role-title">Enseignant</div>
                         </div>
                         <div class="role-description">
-                            Enseignant cherchant des ressources pédagogiques, contacts administratifs, organisation des
-                            cours...
+                            Enseignant cherchant des ressources pédagogiques, contacts administratifs, organisation des cours...
                         </div>
                     </div>
-
+                    
                     <div class="role-button" data-role="Alumni">
                         <div class="role-button-header">
                             <div class="role-icon"><i class="fas fa-user-tie"></i></div>
@@ -127,7 +110,7 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <div class="confirm-role-section">
                     <p>Rôle sélectionné : <strong id="selectedRoleName"></strong></p>
                     <button class="confirm-button" id="confirmRoleBtn">
@@ -138,8 +121,7 @@
             {% else %}
             <!-- Affichage du rôle actuel -->
             <div class="current-role-display">
-                <p><i class="fas fa-user-check"></i> Profil actuel : <span class="role-name">{{ user_profile.role
-                        }}</span></p>
+                <p><i class="fas fa-user-check"></i> Profil actuel : <span class="role-name">{{ user_profile.role }}</span></p>
                 <button class="reset-button" id="resetRoleBtn">
                     <i class="fas fa-redo"></i> Changer de profil
                 </button>
@@ -150,113 +132,87 @@
                 <div class="chat-history" id="chatHistory">
                     <article class="message bot-message">
                         <div class="message-avatar">
-                            <img src="{{ url_for('static', filename='img/franky.png') }}" alt="Franky" class="avatar"
-                                loading="lazy">
+                            <img src="{{ url_for('static', filename='img/franky.png') }}" alt="Franky" class="avatar" loading="lazy">
                         </div>
                         <div class="message-content">
                             <div class="message-header">
                                 <strong>Franky</strong>
                             </div>
-                            <p>Miaaaou ! Je suis <strong>Franky</strong>, votre guide félin de SeaTech ! 🐱 Mon ami
-                                <strong>Freddy</strong> et moi sommes là pour vous aider.
-                                {% if not user_profile.get('confirmed') %}
-                                Commencez par sélectionner votre profil ci-dessus pour que je puisse adapter mes
-                                réponses à vos besoins.
-                                {% else %}
-                                Posez-moi n'importe quelle question sur l'école et je vous répondrai en tant
-                                qu'assistant spécialisé pour les {{ user_profile.role }}s.
-                                {% endif %}
+                            <p>Miaaaou ! Je suis <strong>Franky</strong>, votre guide félin de SeaTech ! 🐱 Mon ami <strong>Freddy</strong> et moi sommes là pour vous aider. 
+                            {% if not user_profile.get('confirmed') %}
+                            Commencez par sélectionner votre profil ci-dessus pour que je puisse adapter mes réponses à vos besoins.
+                            {% else %}
+                            Posez-moi n'importe quelle question sur l'école et je vous répondrai en tant qu'assistant spécialisé pour les {{ user_profile.role }}s.
+                            {% endif %}
                             </p>
                         </div>
                     </article>
-
+                    
                     {% if conversation %}
-                    {% for msg in conversation %}
-                    <article class="message {% if msg.role == 'user' %}user-message{% else %}bot-message{% endif %}">
-                        {% if msg.role != 'user' %}
-                        <div class="message-avatar">
-                            <img src="{{ url_for('static', filename='img/franky.png') }}" alt="Franky" class="avatar"
-                                loading="lazy">
-                        </div>
-                        {% endif %}
-                        <div class="message-content">
-                            {% if msg.role != 'user' %}
-                            <div class="message-header">
-                                <strong>Franky</strong>
-                                <div class="message-actions">
-                                    {% if not msg.get('is_system_message') %}
-                                    <button class="show-sources-btn" aria-label="Afficher les sources"><i
-                                            class="fas fa-file-alt"></i> Sources</button>
-                                    {% endif %}
-                                    {% if msg.processing_time %}
-                                    <span class="processing-time">{{ msg.processing_time }}</span>
-                                    {% endif %}
+                        {% for msg in conversation %}
+                            <article class="message {% if msg.role == 'user' %}user-message{% else %}bot-message{% endif %}">
+                                {% if msg.role != 'user' %}
+                                <div class="message-avatar">
+                                    <img src="{{ url_for('static', filename='img/franky.png') }}" alt="Franky" class="avatar" loading="lazy">
                                 </div>
-                            </div>
-                            {% endif %}
-                            {{ msg.content | safe }}
+                                {% endif %}
+                                <div class="message-content">
+                                    {% if msg.role != 'user' %}
+                                    <div class="message-header">
+                                        <strong>Franky</strong>
+                                        <div class="message-actions">
+                                            {% if not msg.get('is_system_message') %}
+                                            <button class="show-sources-btn" aria-label="Afficher les sources"><i class="fas fa-file-alt"></i> Sources</button>
+                                            {% endif %}
+                                            {% if msg.processing_time %}
+                                            <span class="processing-time">{{ msg.processing_time }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {{ msg.content | safe }}
+                                </div>
+                                {% if msg.role == 'user' %}
+                                <div class="message-avatar">
+                                    <img src="{{ url_for('static', filename='img/user.png') }}" alt="User" class="avatar" loading="lazy">
+                                </div>
+                                {% endif %}
+                            </article>
+                        {% endfor %}
+                    {% else %}
+                        {% if not user_profile.get('confirmed') %}
+                        <div class="role-required-notice">
+                            <i class="fas fa-info-circle"></i> Veuillez sélectionner votre profil ci-dessus pour commencer à poser vos questions.
                         </div>
-                        {% if msg.role == 'user' %}
-                        <div class="message-avatar">
-                            <img src="{{ url_for('static', filename='img/user.png') }}" alt="User" class="avatar"
-                                loading="lazy">
-                        </div>
+                        {% else %}
+                        <div class="no-messages">Posez votre première question !</div>
                         {% endif %}
-                    </article>
-                    {% endfor %}
-                    {% else %}
-                    {% if not user_profile.get('confirmed') %}
-                    <div class="role-required-notice">
-                        <i class="fas fa-info-circle"></i> Veuillez sélectionner votre profil ci-dessus pour commencer à
-                        poser vos questions.
-                    </div>
-                    {% else %}
-                    <div class="no-messages">Posez votre première question !</div>
-                    {% endif %}
                     {% endif %}
                 </div>
-
+                
                 <div class="loading" id="loadingIndicator">
                     <div class="loading-container">
-                        <img src="{{ url_for('static', filename='img/searching-cat.gif') }}" alt="Chat qui cherche"
-                            class="searching-cat">
+                        <img src="{{ url_for('static', filename='img/searching-cat.gif') }}" alt="Chat qui cherche" class="searching-cat">
                         <span id="loadingText">Je demande à Freddy<span class="loading-dots"></span></span>
                     </div>
                 </div>
-
-                <form class="chat-form{% if not user_profile.get('confirmed') %} disabled{% endif %}" id="chatForm"
-                    method="POST" action="/">
+                
+                <form class="chat-form{% if not user_profile.get('confirmed') %} disabled{% endif %}" id="chatForm" method="POST" action="/">
                     <div class="chat-input-container">
-                        <img src="{{ url_for('static', filename='img/cat_walking.png') }}" alt="Chat qui marche"
-                            class="cat-walking">
-                        <input type="text" name="query" id="queryInput" class="chat-input"
-                            placeholder="{% if user_profile.get('confirmed') %}Posez votre question sur SeaTech...{% else %}Sélectionnez d'abord votre profil ci-dessus{% endif %}"
-                            {% if not user_profile.get('confirmed') %}disabled{% endif %} required autocomplete="off"
-                            aria-label="Votre question">
-
-
+                        <img src="{{ url_for('static', filename='img/cat_walking.png') }}" alt="Chat qui marche" class="cat-walking">
+                        <input type="text" name="query" id="queryInput" class="chat-input" 
+                               placeholder="{% if user_profile.get('confirmed') %}Posez votre question sur SeaTech...{% else %}Sélectionnez d'abord votre profil ci-dessus{% endif %}" 
+                               {% if not user_profile.get('confirmed') %}disabled{% endif %} 
+                               required autocomplete="off" aria-label="Votre question">
                     </div>
-                    <!-- Bouton micro -->
-                    <button type="button" id="micButton" class="mic-button" {% if not user_profile.get('confirmed')
-                        %}disabled{% endif %}>
-                        <i class="fas fa-microphone"></i>
-                    </button>
-
-                    <!-- Bouton : mode conversation-->
-                     <button type="button" id="conversationBtn" class="conversation-button">
-                        <i class="fas fa-comments"></i> Start conversation
-                    </button>
-
-                    <button type="submit" class="send-button" {% if not user_profile.get('confirmed') %}disabled{% endif
-                        %}>
+                    <button type="submit" class="send-button" {% if not user_profile.get('confirmed') %}disabled{% endif %}>
                         Envoyer
-                        <img src="{{ url_for('static', filename='img/cat-icon.png') }}" alt="Chat" class="cat-icon"
-                            width="20" height="20">
+                        <img src="{{ url_for('static', filename='img/cat-icon.png') }}" alt="Chat" class="cat-icon" width="20" height="20">
                     </button>
                 </form>
             </section>
         </main>
-
+        
         <!-- Panneau des sources (caché par défaut) -->
         <aside class="sources-panel" id="sourcesPanel" aria-hidden="true">
             <div class="sources-header">
@@ -267,7 +223,7 @@
                 <!-- Sources insérées dynamiquement -->
             </div>
         </aside>
-
+        
         <!-- Panneau de Freddy (toujours visible) -->
         <aside class="freddy-panel card">
             <div class="freddy-header">
@@ -280,13 +236,12 @@
                 <div class="freddy-intro">
                     <img src="{{ url_for('static', filename='img/freddy.png') }}" alt="Freddy" loading="lazy">
                     <div>
-                        <p><strong>Miaaaou !</strong> Je suis <strong>Freddy</strong>, l'assistant de recherche de
-                            SeaTech.</p>
-                        <p>Je fouille dans les documents pour trouver les informations les plus pertinentes
-                            {% if user_profile.get('confirmed') %}pour les {{ user_profile.role }}s{% endif %} !</p>
+                        <p><strong>Miaaaou !</strong> Je suis <strong>Freddy</strong>, l'assistant de recherche de SeaTech.</p>
+                        <p>Je fouille dans les documents pour trouver les informations les plus pertinentes 
+                        {% if user_profile.get('confirmed') %}pour les {{ user_profile.role }}s{% endif %} !</p>
                     </div>
                 </div>
-
+                
                 <div class="freddy-logs-title">
                     <i class="fas fa-search"></i> Analyse de la recherche
                 </div>
@@ -300,7 +255,7 @@
                         {% endif %}
                     </div>
                 </div>
-
+                
                 <div class="freddy-sources-title">
                     <i class="fas fa-file-alt"></i> Sources consultées
                 </div>
@@ -326,17 +281,13 @@
             </div>
         </aside>
     </div>
-
+    
     <footer class="footer">
-        <p>&copy; {{ current_datetime.year }} École d'ingénieurs SeaTech - Université de Toulon | Tous droits réservés
-        </p>
+        <p>&copy; {{ current_datetime.year }} École d'ingénieurs SeaTech - Université de Toulon | Tous droits réservés</p>
     </footer>
-
+    
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            let isConversationMode = false; // mode conversation activé/désactivé
-
-
+        document.addEventListener('DOMContentLoaded', function() {
             const chatForm = document.getElementById('chatForm');
             const chatHistory = document.getElementById('chatHistory');
             const loadingIndicator = document.getElementById('loadingIndicator');
@@ -347,14 +298,14 @@
             const closeSourcesBtn = document.getElementById('closeSourcesBtn');
             const freddyLogs = document.getElementById('freddyLogs');
             const freddySources = document.getElementById('freddySources');
-
+            
             // Éléments de sélection de rôle
             const roleButtons = document.querySelectorAll('.role-button');
             const confirmRoleSection = document.querySelector('.confirm-role-section');
             const confirmRoleBtn = document.getElementById('confirmRoleBtn');
             const resetRoleBtn = document.getElementById('resetRoleBtn');
             const selectedRoleName = document.getElementById('selectedRoleName');
-
+            
             let selectedRole = null;
 
             const loadingMessages = [
@@ -368,370 +319,256 @@
 
             // Gestion de la sélection de rôle
             roleButtons.forEach(button => {
-                button.addEventListener('click', function () {
+                button.addEventListener('click', function() {
+                    // Désélectionner tous les autres boutons
                     roleButtons.forEach(btn => btn.classList.remove('selected'));
+                    
+                    // Sélectionner ce bouton
                     this.classList.add('selected');
                     selectedRole = this.dataset.role;
+                    
+                    // Afficher la section de confirmation
                     selectedRoleName.textContent = selectedRole;
                     confirmRoleSection.classList.add('active');
                 });
             });
 
+            // Confirmation du rôle
             if (confirmRoleBtn) {
-                confirmRoleBtn.addEventListener('click', function () {
+                confirmRoleBtn.addEventListener('click', function() {
                     if (selectedRole) {
                         fetch('/api/ask', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: {'Content-Type': 'application/json'},
                             body: JSON.stringify({ role_selection: selectedRole }),
                             credentials: 'same-origin'
                         })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.status === 'role_selected') {
-                                    window.location.reload();
-                                }
-                            })
-                            .catch(error => console.error('Erreur lors de la sélection de rôle:', error));
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'role_selected') {
+                                // Recharger la page pour afficher la nouvelle interface
+                                window.location.reload();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erreur lors de la sélection de rôle:', error);
+                        });
                     }
                 });
             }
 
+            // Réinitialisation du rôle
             if (resetRoleBtn) {
-                resetRoleBtn.addEventListener('click', function () {
+                resetRoleBtn.addEventListener('click', function() {
                     fetch('/api/reset-role', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {'Content-Type': 'application/json'},
                         credentials: 'same-origin'
                     })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.status === 'role_reset') {
-                                window.location.reload();
-                            }
-                        })
-                        .catch(error => console.error('Erreur lors de la réinitialisation:', error));
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'role_reset') {
+                            window.location.reload();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors de la réinitialisation:', error);
+                    });
                 });
             }
 
+            // Extraction des sources du HTML
             function extractSources(html) {
                 if (!html) return null;
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const sourcesContainer = doc.querySelector('.sources-container');
-                return sourcesContainer ? sourcesContainer.innerHTML : null;
+                if (sourcesContainer) {
+                    return sourcesContainer.innerHTML;
+                }
+                return null;
             }
-
+            
+            // Mise à jour du contenu de Freddy
             function updateFreddyContent(html) {
                 if (!html) return;
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const logsSection = doc.querySelector('.freddy-logs');
-                if (logsSection) freddyLogs.innerHTML = logsSection.innerHTML;
+                if (logsSection) {
+                    freddyLogs.innerHTML = logsSection.innerHTML;
+                }
                 const sourcesSection = doc.querySelector('.freddy-sources-container');
-                if (sourcesSection) freddySources.innerHTML = sourcesSection.innerHTML;
+                if (sourcesSection) {
+                    freddySources.innerHTML = sourcesSection.innerHTML;
+                }
             }
 
-            closeSourcesBtn.addEventListener('click', function () {
+            // Fermeture du panneau des sources
+            closeSourcesBtn.addEventListener('click', function() {
                 sourcesPanel.classList.remove('active');
                 sourcesPanel.setAttribute('aria-hidden', 'true');
             });
 
             let messageIndex = 0;
             let loadingInterval;
-
+            
+            // Mise à jour des messages de chargement
             function updateLoadingMessage() {
                 loadingText.innerHTML = `${loadingMessages[messageIndex]}<span class="loading-dots"></span>`;
                 messageIndex = (messageIndex + 1) % loadingMessages.length;
             }
 
+            // Défilement automatique vers le bas
             function scrollToBottom() {
                 chatHistory.scrollTop = chatHistory.scrollHeight;
             }
+
             scrollToBottom();
 
+            // Initialisation des boutons d'affichage des sources
             function initButtons() {
                 document.querySelectorAll('.show-sources-btn').forEach(button => {
-                    button.addEventListener('click', function () {
+                    button.addEventListener('click', function() {
                         sourcesPanel.classList.add('active');
                         sourcesPanel.setAttribute('aria-hidden', 'false');
                     });
                 });
             }
+            
             initButtons();
 
+            // Gestion de la soumission du formulaire
             if (chatForm) {
-                chatForm.addEventListener('submit', function (e) {
+                chatForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     const query = queryInput.value.trim();
                     if (!query) return;
-
+                    
+                    // Création du message utilisateur
                     const userMessageDiv = document.createElement('article');
                     userMessageDiv.className = 'message user-message';
                     userMessageDiv.innerHTML = `
-                    <div class="message-content">${query}</div>
-                    <div class="message-avatar">
-                        <img src="${window.location.origin}/static/img/user.png" alt="User" class="avatar" loading="lazy">
-                    </div>
-                `;
+                        <div class="message-content">${query}</div>
+                        <div class="message-avatar">
+                            <img src="${window.location.origin}/static/img/user.png" alt="User" class="avatar" loading="lazy">
+                        </div>
+                    `;
                     chatHistory.appendChild(userMessageDiv);
                     scrollToBottom();
-
+                    
+                    // Affichage de l'indicateur de chargement
                     loadingIndicator.style.display = 'block';
                     messageIndex = 0;
                     updateLoadingMessage();
                     loadingInterval = setInterval(updateLoadingMessage, 2000);
-
+                    
+                    // Envoi de la requête au serveur
                     fetch('/api/ask', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ query: query }),
                         credentials: 'same-origin'
                     })
-                        .then(response => response.json())
-                        .then(data => {
-                            clearInterval(loadingInterval);
-                            loadingIndicator.style.display = 'none';
-
-                            if (data.status === 'role_required') {
-                                const errorDiv = document.createElement('article');
-                                errorDiv.className = 'message bot-message';
-                                errorDiv.innerHTML = `
-                            <div class="message-avatar">
-                                <img src="${window.location.origin}/static/img/franky.png" alt="Franky" class="avatar" loading="lazy">
-                            </div>
-                            <div class="message-content">
-                                <div class="message-header"><strong>Franky</strong></div>
-                                ${data.response}
-                            </div>
-                        `;
-                                chatHistory.appendChild(errorDiv);
-                                scrollToBottom();
-                                return;
-                            }
-
-                            const sourcesHtml = data.sources || extractSources(data.response);
-                            let cleanResponse = data.response;
-
-                            if (sourcesHtml && cleanResponse.includes("sources-container")) {
-                                const tempDiv = document.createElement('div');
-                                tempDiv.innerHTML = cleanResponse;
-                                const sourcesContainer = tempDiv.querySelector('.sources-container');
-                                if (sourcesContainer) sourcesContainer.remove();
-                                cleanResponse = tempDiv.innerHTML;
-                            }
-
-                            if (sourcesHtml) sourcesContent.innerHTML = sourcesHtml;
-                            if (data.freddy_logs) updateFreddyContent(data.freddy_logs);
-
-                            const botMessageDiv = document.createElement('article');
-                            botMessageDiv.className = 'message bot-message';
-                            botMessageDiv.innerHTML = `
-                        <div class="message-avatar">
-                            <img src="${window.location.origin}/static/img/franky.png" alt="Franky" class="avatar" loading="lazy">
-                        </div>
-                        <div class="message-content">
-                            <div class="message-header">
-                                <strong>Franky</strong>
-                                <div class="message-actions">
-                                    ${sourcesHtml ? '<button class="show-sources-btn" aria-label="Afficher les sources"><i class="fas fa-file-alt"></i> Sources</button>' : ''}
-                                    ${data.processing_time ? '<span class="processing-time">' + data.processing_time + '</span>' : ''}
-                                    ${data.confirmed_role ? '<span class="role-indicator">Profil: ' + data.confirmed_role + '</span>' : ''}
-                                </div>
-                            </div>
-                            ${cleanResponse}
-                        </div>
-                    `;
-
-                            chatHistory.appendChild(botMessageDiv);
-                            queryInput.value = '';
-                            queryInput.focus();
-                            //ajout Daly
-                            // Lecture vocale de la réponse (TTS)
-                            // Lecture vocale seulement si mode conversation actif
-                            if (isConversationMode && 'speechSynthesis' in window && data.response) {
-                                let textToRead = data.response
-                                    .replace(/<[^>]+>/g, ' ')
-                                    .replace(/[^\w\sàâäçéèêëîïôöùûüÿñœ]/gi, '')
-                                    .replace(/\s+/g, ' ')
-                                    .trim();
-                                const utterance = new SpeechSynthesisUtterance(textToRead);
-                                utterance.lang = "fr-FR";
-                                utterance.rate = 1.0;
-                                utterance.pitch = 1.0;
-                                speechSynthesis.cancel();
-                                speechSynthesis.speak(utterance);
-                            }
-
-                            //fin ajout
-                            scrollToBottom();
-                            initButtons();
-                        })
-                        .catch(error => {
-                            console.error('Erreur:', error);
-                            clearInterval(loadingInterval);
-                            loadingIndicator.style.display = 'none';
-
+                    .then(response => response.json())
+                    .then(data => {
+                        clearInterval(loadingInterval);
+                        loadingIndicator.style.display = 'none';
+                        
+                        // Vérifier si le rôle est requis
+                        if (data.status === 'role_required') {
                             const errorDiv = document.createElement('article');
                             errorDiv.className = 'message bot-message';
                             errorDiv.innerHTML = `
-                        <div class="message-avatar">
-                            <img src="${window.location.origin}/static/img/franky.png" alt="Franky" class="avatar" loading="lazy">
-                        </div>
-                        <div class="message-content">
-                            <div class="message-header"><strong>Franky</strong></div>
-                            <p>Désolé, une erreur s'est produite pendant la recherche. Veuillez réessayer.</p>
-                        </div>
-                    `;
-                            chatHistory.appendChild(errorDiv);
-                            scrollToBottom();
-                        });
-                });
-            }
-
-            // === Reconnaissance vocale ===
-            const micBtn = document.getElementById('micButton'); // utilise l'ID réel du bouton
-            if (micBtn && 'webkitSpeechRecognition' in window) {
-                const recognition = new webkitSpeechRecognition();
-                recognition.lang = "fr-FR";
-                recognition.continuous = false;
-                recognition.interimResults = false;
-
-                micBtn.addEventListener('click', () => {
-                    recognition.start();
-                    micBtn.classList.add("listening"); // effet visuel pendant l'écoute
-                });
-
-                recognition.onresult = (event) => {
-                let transcript = event.results[0][0].transcript;
-
-                // Corrections automatiques pour SeaTech
-                const corrections = {
-                    "steak": "SeaTech",
-                    "scitec": "SeaTech",
-                    "sitec": "SeaTech",
-                    "citech": "SeaTech",
-                    "citek": "SeaTech",
-                    "sutec": "SeaTech",
-                    "sitac": "SeaTech",
-                };
-
-                for (const [wrong, correct] of Object.entries(corrections)) {
-                    const regex = new RegExp(`\\b${wrong}\\b`, "gi"); // cherche le mot entier, insensible à la casse
-                    transcript = transcript.replace(regex, correct);
-                }
-
-                queryInput.value = transcript;      // place le texte corrigé dans la barre de saisie
-                //chatForm.requestSubmit();         // si tu veux envoyer auto, tu décommentes
-                micBtn.classList.remove("listening");
-                };
-
-
-                recognition.onerror = (event) => {
-                    console.error("Erreur vocale:", event.error);
-                    micBtn.classList.remove("listening");
-                };
-
-                recognition.onend = () => {
-                    micBtn.classList.remove("listening");
-                };
-            }
-
-        
-                
-        // === Mode conversation ===
-        const conversationBtn = document.getElementById("conversationBtn");
-        if (conversationBtn && 'webkitSpeechRecognition' in window) {
-            const convRecognition = new webkitSpeechRecognition();
-            convRecognition.lang = "fr-FR";
-            convRecognition.continuous = false;
-            convRecognition.interimResults = false;
-
-            // ✅ Toggle ON/OFF du mode conversation
-            conversationBtn.addEventListener("click", () => {
-                isConversationMode = !isConversationMode;
-
-                if (isConversationMode) {
-                    conversationBtn.classList.add("active");
-                    conversationBtn.innerHTML = '<i class="fas fa-comments"></i> Stop conversation';
-                    convRecognition.start();
-                } else {
-                    conversationBtn.classList.remove("active");
-                    conversationBtn.innerHTML = '<i class="fas fa-comments"></i> Start conversation';
-                    convRecognition.stop();
-                    speechSynthesis.cancel(); // stoppe toute lecture en cours
-                }
-            });
-
-            convRecognition.onresult = (event) => {
-                let transcript = event.results[0][0].transcript;
-
-                // Corrections automatiques pour SeaTech
-                const corrections = { "steak": "SeaTech", "scitec": "SeaTech", "sitec": "SeaTech" };
-                for (const [wrong, correct] of Object.entries(corrections)) {
-                    const regex = new RegExp(`\\b${wrong}\\b`, "gi");
-                    transcript = transcript.replace(regex, correct);
-                }
-
-                // Envoi automatique si mode conversation actif
-                if (isConversationMode) {
-                    fetch('/api/ask', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ query: transcript, mode: "conversation" }),
-                        credentials: 'same-origin'
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            const botMessageDiv = document.createElement('article');
-                            botMessageDiv.className = 'message bot-message';
-                            botMessageDiv.innerHTML = `
                                 <div class="message-avatar">
                                     <img src="${window.location.origin}/static/img/franky.png" alt="Franky" class="avatar" loading="lazy">
                                 </div>
                                 <div class="message-content">
-                                    <div class="message-header"><strong>Franky</strong></div>
+                                    <div class="message-header">
+                                        <strong>Franky</strong>
+                                    </div>
                                     ${data.response}
-                                </div>`;
-                            chatHistory.appendChild(botMessageDiv);
+                                </div>
+                            `;
+                            chatHistory.appendChild(errorDiv);
                             scrollToBottom();
-
-                            // ✅ Lecture vocale courte et propre
-                            if ('speechSynthesis' in window && isConversationMode) {
-                                let textToRead = data.response
-                                    .replace(/<[^>]+>/g, ' ')        // supprime balises HTML
-                                    .replace(/[^\w\sàâäçéèêëîïôöùûüÿñœ]/gi, '') // supprime symboles
-                                    .replace(/\s+/g, ' ')            // normalise espaces
-                                    .trim();
-
-                                const utterance = new SpeechSynthesisUtterance(textToRead);
-                                utterance.lang = "fr-FR";
-                                utterance.rate = 1.0;
-                                utterance.pitch = 1.0;
-                                speechSynthesis.cancel(); // stoppe lectures précédentes
-                                speechSynthesis.speak(utterance);
+                            return;
+                        }
+                        
+                        // Traitement des sources
+                        const sourcesHtml = data.sources || extractSources(data.response);
+                        let cleanResponse = data.response;
+                        
+                        if (sourcesHtml && cleanResponse.includes("sources-container")) {
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = cleanResponse;
+                            const sourcesContainer = tempDiv.querySelector('.sources-container');
+                            if (sourcesContainer) {
+                                sourcesContainer.remove();
+                                cleanResponse = tempDiv.innerHTML;
                             }
-
-                            convRecognition.start(); // relance automatiquement pour écoute suivante
-                        })
-                        .catch(error => {
-                            console.error("Erreur conversation:", error);
-                        });
-                }
-            };
-
-            convRecognition.onerror = (event) => {
-                console.error("Erreur vocale (mode conv):", event.error);
-                conversationBtn.classList.remove("listening");
-            };
-
-            convRecognition.onend = () => {
-                if (isConversationMode) convRecognition.start(); // boucle tant que mode actif
-            };
-        }
-
-    });
+                        }
+                        
+                        if (sourcesHtml) {
+                            sourcesContent.innerHTML = sourcesHtml;
+                        }
+                        
+                        // Mise à jour des logs Freddy
+                        if (data.freddy_logs) {
+                            updateFreddyContent(data.freddy_logs);
+                        }
+                        
+                        // Création du message bot
+                        const botMessageDiv = document.createElement('article');
+                        botMessageDiv.className = 'message bot-message';
+                        botMessageDiv.innerHTML = `
+                            <div class="message-avatar">
+                                <img src="${window.location.origin}/static/img/franky.png" alt="Franky" class="avatar" loading="lazy">
+                            </div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <strong>Franky</strong>
+                                    <div class="message-actions">
+                                        ${sourcesHtml ? '<button class="show-sources-btn" aria-label="Afficher les sources"><i class="fas fa-file-alt"></i> Sources</button>' : ''}
+                                        ${data.processing_time ? '<span class="processing-time">' + data.processing_time + '</span>' : ''}
+                                        ${data.confirmed_role ? '<span class="role-indicator">Profil: ' + data.confirmed_role + '</span>' : ''}
+                                    </div>
+                                </div>
+                                ${cleanResponse}
+                            </div>
+                        `;
+                        
+                        chatHistory.appendChild(botMessageDiv);
+                        queryInput.value = '';
+                        queryInput.focus();
+                        scrollToBottom();
+                        initButtons();
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        clearInterval(loadingInterval);
+                        loadingIndicator.style.display = 'none';
+                        
+                        // Message d'erreur
+                        const errorDiv = document.createElement('article');
+                        errorDiv.className = 'message bot-message';
+                        errorDiv.innerHTML = `
+                            <div class="message-avatar">
+                                <img src="${window.location.origin}/static/img/franky.png" alt="Franky" class="avatar" loading="lazy">
+                            </div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <strong>Franky</strong>
+                                </div>
+                                <p>Désolé, une erreur s'est produite pendant la recherche. Veuillez réessayer.</p>
+                            </div>
+                        `;
+                        chatHistory.appendChild(errorDiv);
+                        scrollToBottom();
+                    });
+                });
+            }
+        });
     </script>
 </body>
-
 </html>

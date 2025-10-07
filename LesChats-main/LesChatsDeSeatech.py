@@ -4,9 +4,6 @@ import json
 import pickle
 import time
 import uuid
-import vosk
-import io
-import wave
 import logging
 from datetime import datetime
 from flask import Flask, request, render_template, jsonify, send_from_directory, session
@@ -103,10 +100,8 @@ else:
 
 if ML_IMPORTS_SUCCESS:
     try:
-        device = "cuda" if torch.cuda.is_available() else "cpu" 
-        #embedding_model = SentenceTransformer('intfloat/e5-large-v2', device='cpu')
-        embedding_model = SentenceTransformer('all-MiniLM-L6-v2', device='cpu')
-        embedding_model.max_seq_length = 256  # Réduire la longueur max
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        embedding_model = SentenceTransformer("intfloat/e5-large-v2", device=device)
         logger.info(f"Modèle d'embedding chargé sur {device}")
     except Exception as e:
         logger.error(f"Erreur chargement modèle d'embedding: {e}")
@@ -755,13 +750,6 @@ search_index, use_faiss = setup_search_index(chunk_embeddings)
 app = Flask(__name__)
 app.secret_key = 'seatech_chat_secret_key'
 conversation_history_global = {}
-# ajout Daly
-
-# Charger modèle Vosk une seule fois au démarrage
-# vosk_model = vosk.Model("models/vosk-model-fr-0.6-linto-2.2.0") 
-vosk_model = vosk.Model("models/vosk-model-small-fr-0.22")
-
-#fin ajout
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -844,13 +832,6 @@ def api_ask():
         data = request.get_json()
         user_query = data.get("query", "").strip()
         role_selection = data.get("role_selection", None)
-        
-        # AJOUT  Daly
-        if data.get("mode") == "conversation":
-            prompt = "Réponds de façon brève, 1 à 2 phrases maximum, pour être lue à voix haute."
-        else:
-            prompt = "Réponse normale"
-        #  Fin ajout
         
         if not user_query and not role_selection:
             return jsonify({"error": "Question vide"}), 400
@@ -979,48 +960,6 @@ def send_static(path):
     """Fournit les fichiers statiques."""
     return send_from_directory('static', path)
 
-@app.route('/api/ask-audio', methods=['POST'])
-def ask_audio():
-    if 'audio' not in request.files:
-        return jsonify({"error": "Aucun fichier audio reçu"}), 400
-
-    audio_file = request.files['audio']
-    wf = wave.open(io.BytesIO(audio_file.read()), "rb")
-
-    if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getframerate() not in [8000, 16000]:
-        return jsonify({"error": "Format audio non supporté. Utilise WAV PCM mono 16kHz."}), 400
-
-    rec = vosk.KaldiRecognizer(vosk_model, wf.getframerate())
-    text = ""
-
-    while True:
-        data = wf.readframes(4000)
-        if len(data) == 0:
-            break
-        if rec.AcceptWaveform(data):
-            res = json.loads(rec.Result())
-            text += " " + res.get("text", "")
-
-    final_res = json.loads(rec.FinalResult())
-    text += " " + final_res.get("text", "")
-
-    text = text.strip()
-    if not text:
-        return jsonify({"response": "Désolé, je n’ai pas compris l’audio."})
-
-    # Réutiliser ton pipeline existant
-    session_id = request.cookies.get("session_id", "default")
-    search_results, freddy_logs = search_similar_chunks_with_confirmed_role(text, session_id)
-    answer, sources, processing_time = generate_answer(text, search_results, session_id, user_profile)
-
-    return jsonify({
-        "response": answer,
-        "sources": sources,
-        "freddy_logs": freddy_logs,
-        "processing_time": processing_time,
-        "query": text
-    })
-
 if __name__ == "__main__":
     # Création des répertoires statiques si nécessaires
     if not os.path.exists("static"):
@@ -1029,11 +968,4 @@ if __name__ == "__main__":
         os.makedirs("static/img", exist_ok=True)
     templates_dir = os.path.join(BASE_DIR, "templates")
     os.makedirs(templates_dir, exist_ok=True)
-    
-    # IMPORTANT : Récupérer le port depuis les variables d'environnement
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)  # debug=False en production
-    
-    # Charger modèle Vosk une fois au démarrage
-#vosk_model = vosk.Model("model-fr")
-
+    app.run(host="0.0.0.0", port=5000, debug=True)
