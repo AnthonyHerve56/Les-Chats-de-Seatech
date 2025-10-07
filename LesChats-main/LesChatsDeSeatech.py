@@ -758,8 +758,8 @@ conversation_history_global = {}
 # ajout Daly
 
 # Charger modèle Vosk une seule fois au démarrage
-vosk_model = vosk.Model("models/vosk-model-fr-0.6-linto-2.2.0")
-
+# vosk_model = vosk.Model("models/vosk-model-fr-0.6-linto-2.2.0") 
+vosk_model = vosk.Model("models/vosk-model-small-fr-0.22")
 
 #fin ajout
 
