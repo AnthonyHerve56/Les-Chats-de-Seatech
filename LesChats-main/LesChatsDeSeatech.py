@@ -103,8 +103,10 @@ else:
 
 if ML_IMPORTS_SUCCESS:
     try:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        embedding_model = SentenceTransformer("all-MiniLM-L6-v2", device=device)
+        device = "cuda" if torch.cuda.is_available() else "cpu" 
+        #embedding_model = SentenceTransformer('intfloat/e5-large-v2', device='cpu')
+        embedding_model = SentenceTransformer('all-MiniLM-L6-v2', device='cpu')
+        embedding_model.max_seq_length = 256  # Réduire la longueur max
         logger.info(f"Modèle d'embedding chargé sur {device}")
     except Exception as e:
         logger.error(f"Erreur chargement modèle d'embedding: {e}")
@@ -1027,7 +1029,10 @@ if __name__ == "__main__":
         os.makedirs("static/img", exist_ok=True)
     templates_dir = os.path.join(BASE_DIR, "templates")
     os.makedirs(templates_dir, exist_ok=True)
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    
+    # IMPORTANT : Récupérer le port depuis les variables d'environnement
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)  # debug=False en production
     
     # Charger modèle Vosk une fois au démarrage
 #vosk_model = vosk.Model("model-fr")
