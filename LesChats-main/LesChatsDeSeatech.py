@@ -103,7 +103,8 @@ else:
 
 if ML_IMPORTS_SUCCESS:
     try:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        device = "cuda" if torch.cuda.is_available() else "cpu" 
+        #embedding_model = SentenceTransformer('intfloat/e5-large-v2', device='cpu')
         embedding_model = SentenceTransformer('all-MiniLM-L6-v2', device='cpu')
         embedding_model.max_seq_length = 256  # Réduire la longueur max
         logger.info(f"Modèle d'embedding chargé sur {device}")
